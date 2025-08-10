@@ -67,10 +67,10 @@ steps:
         # Verificar si hay vulnerabilidades críticas/altas en Trivy
         if [ -f "trivy-results.json" ]; then
           VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' trivy-results.json | awk '{sum+=$1} END {print sum+0}')
-          echo "Vulnerabilidades encontradas: $VULN_COUNT"
+          echo "Vulnerabilidades encontradas: $$VULN_COUNT"
           
-          if [ "$VULN_COUNT" -gt 0 ]; then
-            echo "❌ Se encontraron $VULN_COUNT vulnerabilidades críticas/altas"
+          if [ "$$VULN_COUNT" -gt 0 ]; then
+            echo "❌ Se encontraron $$VULN_COUNT vulnerabilidades críticas/altas"
             echo "Detalles:"
             jq -r '.Results[].Vulnerabilities[] | "  - \(.VulnerabilityID): \(.Title) (Severity: \(.Severity))"' trivy-results.json
             exit 1
