@@ -33,7 +33,7 @@ USER node
 USER root
 RUN ARCH=$(uname -m) \
     && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
-    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.53.0/trivy_0.53.0_Linux-${ARCH}.tar.gz" | \
+    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.54.0/trivy_0.54.0_Linux-${ARCH}.tar.gz" | \
     tar -xz -C /usr/local/bin trivy \
     && chmod +x /usr/local/bin/trivy
 
