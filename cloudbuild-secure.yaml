@@ -21,9 +21,7 @@ steps:
       - '--exit-code'
       - '1'
       - '--format'
-      - 'json'
-      - '--output'
-      - 'trivy-results.json'
+      - 'table'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Trivy para vulnerabilidades medias (solo reporte)
@@ -37,8 +35,6 @@ steps:
       - '0'
       - '--format'
       - 'table'
-      - '--output'
-      - 'trivy-medium-results.txt'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Google Artifact Analysis
@@ -54,36 +50,6 @@ steps:
       - '--location=us'
       - '--format=json'
       - '--quiet'
-
-  # Verificar resultados de escaneo
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'check-vulnerabilities'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "=== Verificando resultados de escaneo ==="
-
-        # Verificar si hay vulnerabilidades críticas/altas en Trivy
-        if [ -f "trivy-results.json" ]; then
-          VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' trivy-results.json | awk '{sum+=$1} END {print sum+0}')
-          echo "Vulnerabilidades encontradas: $$VULN_COUNT"
-          
-          if [ "$$VULN_COUNT" -gt 0 ]; then
-            echo "❌ Se encontraron $$VULN_COUNT vulnerabilidades críticas/altas"
-            echo "Detalles:"
-            jq -r '.Results[].Vulnerabilities[] | "  - \(.VulnerabilityID): \(.Title) (Severity: \(.Severity))"' trivy-results.json
-            exit 1
-          else
-            echo "✅ No se encontraron vulnerabilidades críticas/altas"
-          fi
-        fi
-
-        # Mostrar vulnerabilidades medias (solo informativo)
-        if [ -f "trivy-medium-results.txt" ]; then
-          echo "📋 Vulnerabilidades medias encontradas:"
-          cat trivy-medium-results.txt
-        fi
 
   # Subir imagen a Container Registry (solo si escaneos pasan)
   - name: 'gcr.io/cloud-builders/docker'
