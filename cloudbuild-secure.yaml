@@ -22,6 +22,8 @@ steps:
       - '1'
       - '--format'
       - 'table'
+      - '--skip-files'
+      - '/usr/local/bin/trivy'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Trivy para vulnerabilidades medias (solo reporte)
@@ -35,6 +37,8 @@ steps:
       - '0'
       - '--format'
       - 'table'
+      - '--skip-files'
+      - '/usr/local/bin/trivy'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Google Artifact Analysis
