@@ -1,0 +1,23 @@
+{
+  "name": "n8n-docker",
+  "version": "1.0.0",
+  "description": "n8n con PostgreSQL usando Docker",
+  "main": "index.js",
+  "scripts": {
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "build": "docker build -f Dockerfile -t n8n:latest .",
+    "scan": "powershell -ExecutionPolicy Bypass -File scan-simple.ps1",
+    "test": "./test-simple-n8n.sh",
+    "clean": "./clean-and-start.sh",
+    "pack-context": "npm exec -y -- repomix@latest"
+  },
+  "keywords": [
+    "n8n",
+    "docker",
+    "postgresql",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT"
+}

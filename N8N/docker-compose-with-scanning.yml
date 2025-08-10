@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # n8n con capacidades de escaneo integradas
+  n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile.with-trivy
+    container_name: n8n-with-scanning
+    restart: unless-stopped
+
+    # Cargar variables desde .env de forma segura
+    env_file:
+      - .env
+
+    # Variables adicionales (no sensibles)
+    environment:
+      N8N_HOST: 0.0.0.0
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      NODE_ENV: production
+
+    # Configuración de red segura
+    ports:
+      - '127.0.0.1:5678:5678' # Solo acceso local
+
+    # Volúmenes con permisos restringidos
+    volumes:
+      - n8n_data:/home/node/.n8n:rw
+      - ./logs:/home/node/.n8n/logs:rw
+      - ./security-scans:/home/node/security-scans:rw # Para resultados de escaneo
+
+    # Configuración de seguridad
+    security_opt:
+      - no-new-privileges:true # Previene escalación de privilegios
+
+    # Límites de recursos
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+    # Health check
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:5678/healthz',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+    # Configuración de logging
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+    # Configuración de red
+    networks:
+      - n8n-network
+
+  # Servicio de escaneo periódico (opcional)
+  security-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile.with-trivy
+    container_name: n8n-security-scanner
+    restart: 'no'
+    # depends_on removido - el escaneo no depende de que n8n esté activo
+
+    # Solo ejecutar escaneo, no n8n
+    command: ['/usr/local/bin/scan-internal.sh']
+
+    # Volúmenes para compartir resultados
+    volumes:
+      - ./security-scans:/home/node/security-scans:rw
+      - n8n_data:/home/node/.n8n:ro # Solo lectura para escanear
+
+    # Configuración de red
+    networks:
+      - n8n-network
+
+volumes:
+  n8n_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data # Directorio local para datos
+
+networks:
+  n8n-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

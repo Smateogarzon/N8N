@@ -1,0 +1,60 @@
+# Dockerfile para n8n en Google Cloud Run
+# Optimizado para serverless con puerto dinámico
+
+# Etapa 1: Builder (para dependencias adicionales si las necesitas)
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Etapa 2: Imagen final basada en n8n oficial
+FROM n8nio/n8n:latest
+
+# Cambiar al directorio de trabajo
+WORKDIR /home/node
+
+# Instalar herramientas adicionales para Cloud Run
+USER root
+RUN apk add --no-cache \
+    curl \
+    wget \
+    postgresql-client \
+    jq \
+    gosu
+USER node
+
+# Instalar Trivy para escaneos internos (método robusto)
+USER root
+RUN apk add --no-cache bash \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
+    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.53.0/trivy_0.53.0_Linux-${ARCH}.tar.gz" | \
+    tar -xz -C /usr/local/bin trivy \
+    && chmod +x /usr/local/bin/trivy
+
+# Copiar script de inicio para Cloud Run (como root)
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+# Cambiar a usuario no privilegiado
+USER node
+
+# Crear directorio para logs
+RUN mkdir -p /home/node/.n8n/logs
+
+# Variables de entorno por defecto para Cloud Run
+ENV NODE_ENV=production
+ENV N8N_HOST=0.0.0.0
+ENV N8N_PROTOCOL=http
+# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
+
+# Exponer puerto (Cloud Run lo manejará dinámicamente)
+EXPOSE 8080
+
+# Usar script de inicio para Cloud Run
+ENTRYPOINT ["/startup.sh"] 

@@ -1,0 +1,47 @@
+# Archivos de entorno
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directorios de datos
+data/
+n8n-backup/
+security-scans/
+scan-results/
+
+# Archivos temporales
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+.dockerignore
+
+# Archivos de configuración local
+config.local.js
+settings.local.json
+
+# Archivos de backup
+*.sql
+*.backup
+
+# Archivos de seguridad (no subir nunca)
+*.key
+*.pem
+*.crt
+secrets/ 

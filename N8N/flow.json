@@ -1,0 +1,89 @@
+{
+  "name": "Ping HTTP",
+  "active": false,
+  "settings": {},
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "test-ping",
+        "responseMode": "responseNode",
+        "options": {
+          "alwaysOutputData": true
+        }
+      },
+      "id": "6f3b2e7e-3f4c-4f4d-9b1a-7d5a2c3a9f01",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [260, 300],
+      "webhookId": "b69c41e8-5f0f-4a8d-a5a9-65dbfe5d636a"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "ok"
+            },
+            {
+              "name": "service",
+              "value": "n8n-local"
+            },
+            {
+              "name": "echoName",
+              "value": "={{$json.query.name || \"sin_nombre\"}}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{$now}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a2a8f0f0-0d2a-49a8-8e6f-3d9c7b1c9e11",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "responseCode": 200,
+        "responseData": "firstEntryJson"
+      },
+      "id": "e5d0b3a4-8c71-4b2e-ae2f-2d6c9f1a7c22",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [820, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
