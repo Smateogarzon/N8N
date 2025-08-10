@@ -26,17 +26,19 @@ steps:
       - '/usr/local/bin/trivy'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
-  # Escanear con Trivy para vulnerabilidades medias (solo reporte)
+  # Escanear con Trivy para vulnerabilidades medias y bajas (guardar en archivo)
   - name: 'aquasec/trivy'
     id: 'trivy-scan-medium'
     args:
       - 'image'
       - '--severity'
-      - 'MEDIUM'
+      - 'MEDIUM,LOW'
       - '--exit-code'
       - '0'
       - '--format'
       - 'table'
+      - '--output'
+      - 'trivy-non-critical-results.txt'
       - '--skip-files'
       - '/usr/local/bin/trivy'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
@@ -54,6 +56,21 @@ steps:
       - '--location=us'
       - '--format=json'
       - '--quiet'
+
+  # Mostrar vulnerabilidades no críticas solo si existen
+  - name: 'alpine'
+    id: 'display-non-critical-vulnerabilities'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        if [ -s trivy-non-critical-results.txt ]; then
+          echo "--- Found non-critical vulnerabilities (Medium/Low) ---"
+          cat trivy-non-critical-results.txt
+          echo "-------------------------------------------------------"
+        else
+          echo "✅ No non-critical vulnerabilities found."
+        fi
 
   # Subir imagen a Container Registry (solo si escaneos pasan)
   - name: 'gcr.io/cloud-builders/docker'
