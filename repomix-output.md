@@ -34,9 +34,11 @@ The content is organized as follows:
 
 # Directory Structure
 ```
-.dockerignore
+.gitignore
+CHANGELOG.md
 clean-and-start.sh
 cloudbuild-secure.yaml
+CONTRIBUTING.md
 deploy-cloudrun.sh
 docker-compose-simple.yml
 docker-compose-with-scanning.yml
@@ -47,6 +49,7 @@ Dockerfile.cloudrun
 Dockerfile.with-trivy
 fix-and-test.sh
 flow.json
+LICENSE
 package.json
 README-cloudrun.md
 README-docker.md
@@ -56,8 +59,6 @@ README.md
 repomix.config.json
 scan-internal.sh
 scan-local.sh
-scan-results/report.txt
-scan-results/security-report.txt
 scan-simple.ps1
 security-audit.sh
 SECURITY.md
@@ -69,62 +70,101 @@ verify-dockerfiles.sh
 
 # Files
 
-## File: .dockerignore
+## File: .gitignore
 ````
-# Archivos y directorios a ignorar en Docker build
+# Archivos de entorno
+.env
+.env.local
+.env.development
+.env.production
 
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Dependencias
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Directorios de datos
+data/
+n8n-backup/
+security-scans/
+scan-results/
 
-# Archivos de desarrollo
-.git
-.gitignore
-README.md
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-env.example
-
-# Archivos de IDE
-.vscode
-.idea
-*.swp
-*.swo
-*~
-
-# Archivos del sistema
+# Archivos temporales
+*.tmp
+*.temp
 .DS_Store
 Thumbs.db
 
-# Archivos temporales
-tmp
-temp
-*.tmp
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Archivos de Docker
-Dockerfile*
-docker-compose*
+# Docker
 .dockerignore
-
-# Archivos de documentación
-docs
-*.md
 
 # Archivos de configuración local
 config.local.js
 settings.local.json
+
+# Archivos de backup
+*.sql
+*.backup
+
+# Archivos de seguridad (no subir nunca)
+*.key
+*.pem
+*.crt
+secrets/
+````
+
+## File: CHANGELOG.md
+````markdown
+# Changelog
+
+Todos los cambios notables en este proyecto serán documentados en este archivo.
+
+El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.0] - 2024-01-XX
+
+### Added
+
+- Configuración completa de n8n con PostgreSQL usando Docker
+- Multi-stage Dockerfiles optimizados
+- Scripts de escaneo de vulnerabilidades (Trivy)
+- Configuración para Google Cloud Run
+- Documentación completa en español
+- Scripts de automatización para desarrollo local
+- CI/CD pipeline con Cloud Build
+- Auditoría de seguridad integrada
+
+### Security
+
+- Usuario no-root para contenedores
+- Escaneo automático de vulnerabilidades
+- Gestión segura de secretos via variables de entorno
+- Configuración de seguridad hardening
+
+### Fixed
+
+- Problema de permisos con gosu/su-exec
+- Conflictos de puertos en Docker Compose
+- Problemas de conectividad con PostgreSQL
+- Errores de construcción en Dockerfiles
+
+## [Unreleased]
+
+### Planned
+
+- Soporte para múltiples bases de datos
+- Integración con Kubernetes
+- Métricas y monitoreo avanzado
+- Backup automático de datos
 ````
 
 ## File: clean-and-start.sh
@@ -291,6 +331,105 @@ substitutions:
   _N8N_ENCRYPTION_KEY: 'your-encryption-key'
   _N8N_USER: 'admin'
   _N8N_PASSWORD: 'your-n8n-password'
+````
+
+## File: CONTRIBUTING.md
+````markdown
+# Contribuyendo al Proyecto n8n Docker
+
+¡Gracias por tu interés en contribuir! Este documento proporciona las pautas para contribuir al proyecto.
+
+## 🚀 Cómo Contribuir
+
+### 1. Fork y Clone
+
+```bash
+# Fork el repositorio en GitHub
+# Luego clona tu fork
+git clone https://github.com/tu-usuario/n8n-docker.git
+cd n8n-docker
+```
+
+### 2. Crear una Rama
+
+```bash
+git checkout -b feature/nombre-de-tu-feature
+# o
+git checkout -b fix/nombre-del-fix
+```
+
+### 3. Hacer Cambios
+
+- Sigue las convenciones de código existentes
+- Añade tests si es necesario
+- Actualiza la documentación
+- Verifica que los scripts funcionen
+
+### 4. Probar Cambios
+
+```bash
+# Probar construcción
+./test-simple.sh
+
+# Probar ejecución
+./test-simple-n8n.sh
+
+# Escanear vulnerabilidades
+./scan-local.sh  # Linux/macOS
+# o
+.\scan-simple.ps1  # Windows
+```
+
+### 5. Commit y Push
+
+```bash
+git add .
+git commit -m "feat: descripción del cambio"
+git push origin feature/nombre-de-tu-feature
+```
+
+### 6. Crear Pull Request
+
+- Ve a GitHub y crea un Pull Request
+- Describe claramente los cambios
+- Incluye información de testing
+
+## 📋 Convenciones
+
+### Commits
+
+Usa el formato convencional:
+
+- `feat:` nueva característica
+- `fix:` corrección de bug
+- `docs:` cambios en documentación
+- `style:` cambios de formato
+- `refactor:` refactorización
+- `test:` añadir tests
+- `chore:` tareas de mantenimiento
+
+### Código
+
+- Usa nombres descriptivos
+- Comenta código complejo
+- Sigue las mejores prácticas de Docker
+- Mantén la seguridad como prioridad
+
+## 🔒 Seguridad
+
+- Nunca subas credenciales o secretos
+- Verifica vulnerabilidades antes de contribuir
+- Reporta problemas de seguridad de forma privada
+
+## 📚 Recursos
+
+- [Documentación de n8n](https://docs.n8n.io/)
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+- [GitHub Flow](https://guides.github.com/introduction/flow/)
+
+## 🤝 Contacto
+
+Si tienes preguntas, abre un issue en GitHub.
 ````
 
 ## File: deploy-cloudrun.sh
@@ -1051,6 +1190,31 @@ echo "Si n8n responde, deberías poder acceder ahora"
 }
 ````
 
+## File: LICENSE
+````
+MIT License
+
+Copyright (c) 2024 n8n Docker Project
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+````
+
 ## File: package.json
 ````json
 {
@@ -1063,6 +1227,8 @@ echo "Si n8n responde, deberías poder acceder ahora"
     "stop": "docker-compose down",
     "build": "docker build -f Dockerfile -t n8n:latest .",
     "scan": "powershell -ExecutionPolicy Bypass -File scan-simple.ps1",
+    "test": "./test-simple-n8n.sh",
+    "clean": "./clean-and-start.sh",
     "pack-context": "npm exec -y -- repomix@latest"
   },
   "keywords": [
@@ -1369,7 +1535,7 @@ N8N/
 ├── Dockerfile              # Imagen personalizada de n8n
 ├── docker-compose.yml      # Orquestación con PostgreSQL
 ├── docker-entrypoint.sh    # Script de inicialización
-├── init_n8n.sql           # Inicialización de base de datos
+├── startup.sh             # Script para Cloud Run
 ├── .dockerignore          # Archivos ignorados en build
 └── README-docker.md       # Esta documentación
 ```
@@ -1397,7 +1563,7 @@ docker-compose ps
 
 ### 2. Acceder a n8n
 
-- **URL**: http://localhost:5678
+- **URL**: http://localhost:5679
 - **Usuario**: admin
 - **Contraseña**: tu_password
 
@@ -2050,12 +2216,17 @@ docker-compose up -d
 
 # Acceder a n8n
 # http://localhost:5679
+# Usuario: admin
+# Contraseña: tu_password
 ```
 
-### Escaneo de Vulnerabilidades (Windows)
+### Escaneo de Vulnerabilidades
 
-```powershell
-# Escaneo simple con Docker
+```bash
+# Linux/macOS
+./scan-local.sh
+
+# Windows
 .\scan-simple.ps1
 ```
 
@@ -2138,7 +2309,7 @@ docker build -f Dockerfile.with-trivy -t n8n-trivy:latest .
 
 ## 🔐 Variables de Entorno
 
-Crea un archivo `.env` basado en `env.example`:
+Las variables están configuradas en `docker-compose.yml`. Para producción, crea un archivo `.env`:
 
 ```bash
 # Base de datos
@@ -2149,11 +2320,11 @@ DB_POSTGRESDB_DATABASE=n8n_db
 DB_POSTGRESDB_USER=n8n_user
 DB_POSTGRESDB_PASSWORD=tu_contraseña_segura
 
-# n8n
-N8N_ENCRYPTION_KEY=tu_clave_de_encriptacion
+# n8n (OBLIGATORIO cambiar en producción)
+N8N_ENCRYPTION_KEY=tu_clave_de_encriptacion_super_larga_y_unica
 N8N_BASIC_AUTH_ACTIVE=true
 N8N_BASIC_AUTH_USER=admin
-N8N_BASIC_AUTH_PASSWORD=tu_contraseña_admin
+N8N_BASIC_AUTH_PASSWORD=tu_contraseña_admin_segura
 ```
 
 ## 🎯 Características
@@ -2459,32 +2630,6 @@ if [ -f "scan-results/trivy-critical.json" ]; then
 else
     echo -e "${GREEN}✅ Imagen lista para despliegue${NC}"
 fi
-````
-
-## File: scan-results/report.txt
-````
-=== Reporte de Vulnerabilidades ===
-Fecha: 08/10/2025 13:27:52
-Imagen: my-n8n-image:latest
-MÃ©todo: Docker + Trivy
-
-=== Vulnerabilidades CrÃ­ticas/Altas ===
-OK: No se encontraron vulnerabilidades crÃ­ticas/altas
-=== Vulnerabilidades Medias ===
-=== Vulnerabilidades Bajas ===
-=== ConfiguraciÃ³n de Seguridad ===
-````
-
-## File: scan-results/security-report.txt
-````
-=== Reporte de Vulnerabilidades - 08/10/2025 13:02:39 ===
-Imagen: my-n8n-image:latest
-
-=== Vulnerabilidades CrÃ­ticas/Altas ===
-  âœ… No se encontraron vulnerabilidades crÃ­ticas/altas
-=== Vulnerabilidades Medias ===
-=== Vulnerabilidades Bajas ===
-=== ConfiguraciÃ³n de Seguridad ===
 ````
 
 ## File: scan-simple.ps1
