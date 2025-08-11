@@ -41,10 +41,7 @@ RUN apk add --no-cache bash \
 COPY startup.sh /startup.sh
 RUN chmod +x /startup.sh
 
-# Cambiar a usuario no privilegiado
-USER node
-
-# Crear directorio para logs
+# Crear directorio para logs (está bien hacerlo como root, el startup.sh lo arregla)
 RUN mkdir -p /home/node/.n8n/logs
 
 # Variables de entorno por defecto para Cloud Run
