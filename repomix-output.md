@@ -2665,74 +2665,6 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 - [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker/)
 ````
 
-## File: startup.sh
-````bash
-#!/bin/sh
-# Script de inicio para Cloud Run - Maneja puerto dinámico
-
-set -e
-
-echo "=== Iniciando n8n para Cloud Run ==="
-
-# Manejar puerto dinámico de Cloud Run
-if [ -n "$PORT" ]; then
-    echo "Puerto Cloud Run detectado: $PORT"
-    export N8N_PORT=$PORT
-    echo "Configurando n8n para escuchar en puerto: $N8N_PORT"
-else
-    echo "Puerto Cloud Run no detectado, usando puerto por defecto: ${N8N_PORT:-5678}"
-    export N8N_PORT=${N8N_PORT:-5678}
-fi
-
-# Configurar host para Cloud Run
-export N8N_HOST=${N8N_HOST:-0.0.0.0}
-export N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-
-# Validar variables de entorno críticas
-if [ -z "$DB_TYPE" ]; then
-    echo "Error: DB_TYPE no está definido"
-    exit 1
-fi
-
-if [ "$DB_TYPE" = "postgresdb" ]; then
-    required_vars="DB_POSTGRESDB_HOST DB_POSTGRESDB_DATABASE DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD"
-    for var in $required_vars; do
-        if [ -z "$(eval echo \$$var)" ]; then
-            echo "Error: $var no está definido para PostgreSQL"
-            exit 1
-        fi
-    done
-fi
-
-# Crear directorios necesarios
-mkdir -p /home/node/.n8n/logs
-mkdir -p /home/node/.n8n/data
-chown -R node:node /home/node/.n8n
-
-# Mostrar configuración final
-echo "=== Configuración final ==="
-echo "Host: $N8N_HOST"
-echo "Puerto: $N8N_PORT"
-echo "Protocolo: $N8N_PROTOCOL"
-echo "Base de datos: $DB_TYPE"
-if [ "$DB_TYPE" = "postgresdb" ]; then
-    echo "PostgreSQL Host: $DB_POSTGRESDB_HOST"
-    echo "PostgreSQL Database: $DB_POSTGRESDB_DATABASE"
-    echo "PostgreSQL User: $DB_POSTGRESDB_USER"
-fi
-echo "=========================="
-
-# Cambiar al usuario node y ejecutar n8n
-echo "Iniciando n8n con logs detallados..."
-# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
-gosu node n8n start || {
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  exit 1
-}
-````
-
 ## File: test-simple-n8n.sh
 ````bash
 #!/bin/bash
@@ -3003,70 +2935,6 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["n8n", "start"]
 ````
 
-## File: Dockerfile.cloudrun
-````
-# Dockerfile para n8n en Google Cloud Run
-# Optimizado para serverless con puerto dinámico
-
-# Etapa 1: Builder (para dependencias adicionales si las necesitas)
-FROM node:22-alpine AS builder
-WORKDIR /app
-
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git
-
-# Etapa 2: Imagen final basada en n8n oficial
-FROM n8nio/n8n:latest
-
-# Cambiar al directorio de trabajo
-WORKDIR /home/node
-
-# Instalar herramientas adicionales para Cloud Run
-USER root
-RUN apk add --no-cache \
-    curl \
-    wget \
-    postgresql-client \
-    jq \
-    gosu
-USER node
-
-# Instalar Trivy para escaneos internos (método robusto)
-USER root
-RUN apk add --no-cache bash \
-    && ARCH=$(uname -m) \
-    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
-    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.54.0/trivy_0.54.0_Linux-${ARCH}.tar.gz" | \
-    tar -xz -C /usr/local/bin trivy \
-    && chmod +x /usr/local/bin/trivy
-
-# Copiar script de inicio para Cloud Run (como root)
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
-
-# Cambiar a usuario no privilegiado
-USER node
-
-# Crear directorio para logs
-RUN mkdir -p /home/node/.n8n/logs
-
-# Variables de entorno por defecto para Cloud Run
-ENV NODE_ENV=production
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PROTOCOL=http
-# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
-
-# Exponer puerto (Cloud Run lo manejará dinámicamente)
-EXPOSE 8080
-
-# Usar script de inicio para Cloud Run
-ENTRYPOINT ["/startup.sh"]
-````
-
 ## File: Dockerfile.with-trivy
 ````
 # Dockerfile para n8n con Trivy integrado
@@ -3120,6 +2988,135 @@ USER node
 
 # Crear directorio para logs y escaneos
 RUN mkdir -p /home/node/.n8n/logs /home/node/security-scans
+
+# Variables de entorno por defecto para Cloud Run
+ENV NODE_ENV=production
+ENV N8N_HOST=0.0.0.0
+ENV N8N_PROTOCOL=http
+# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
+
+# Exponer puerto (Cloud Run lo manejará dinámicamente)
+EXPOSE 8080
+
+# Usar script de inicio para Cloud Run
+ENTRYPOINT ["/startup.sh"]
+````
+
+## File: startup.sh
+````bash
+#!/bin/sh
+# Script de inicio para Cloud Run - Maneja puerto dinámico
+
+set -e
+
+echo "=== Iniciando n8n para Cloud Run ==="
+
+# Manejar puerto dinámico de Cloud Run
+if [ -n "$PORT" ]; then
+    echo "Puerto Cloud Run detectado: $PORT"
+    export N8N_PORT=$PORT
+    echo "Configurando n8n para escuchar en puerto: $N8N_PORT"
+else
+    echo "Puerto Cloud Run no detectado, usando puerto por defecto: ${N8N_PORT:-5678}"
+    export N8N_PORT=${N8N_PORT:-5678}
+fi
+
+# Configurar host para Cloud Run
+export N8N_HOST=${N8N_HOST:-0.0.0.0}
+export N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+
+# Validar variables de entorno críticas
+if [ -z "$DB_TYPE" ]; then
+    echo "Error: DB_TYPE no está definido"
+    exit 1
+fi
+
+if [ "$DB_TYPE" = "postgresdb" ]; then
+    required_vars="DB_POSTGRESDB_HOST DB_POSTGRESDB_DATABASE DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD"
+    for var in $required_vars; do
+        if [ -z "$(eval echo \$$var)" ]; then
+            echo "Error: $var no está definido para PostgreSQL"
+            exit 1
+        fi
+    done
+fi
+
+# Crear directorios necesarios
+mkdir -p /home/node/.n8n/logs
+mkdir -p /home/node/.n8n/data
+chown -R node:node /home/node/.n8n
+
+# Mostrar configuración final
+echo "=== Configuración final ==="
+echo "Host: $N8N_HOST"
+echo "Puerto: $N8N_PORT"
+echo "Protocolo: $N8N_PROTOCOL"
+echo "Base de datos: $DB_TYPE"
+if [ "$DB_TYPE" = "postgresdb" ]; then
+    echo "PostgreSQL Host: $DB_POSTGRESDB_HOST"
+    echo "PostgreSQL Database: $DB_POSTGRESDB_DATABASE"
+    echo "PostgreSQL User: $DB_POSTGRESDB_USER"
+fi
+echo "=========================="
+
+# Cambiar al usuario node y ejecutar n8n
+echo "Iniciando n8n con logs detallados..."
+# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
+gosu node n8n start || {
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  exit 1
+}
+````
+
+## File: Dockerfile.cloudrun
+````
+# Dockerfile para n8n en Google Cloud Run
+# Optimizado para serverless con puerto dinámico
+
+# Etapa 1: Builder (para dependencias adicionales si las necesitas)
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Etapa 2: Imagen final basada en n8n oficial
+FROM n8nio/n8n:latest
+
+# Cambiar al directorio de trabajo
+WORKDIR /home/node
+
+# Instalar herramientas adicionales para Cloud Run
+USER root
+RUN apk add --no-cache \
+    curl \
+    wget \
+    postgresql-client \
+    jq \
+    gosu
+USER node
+
+# Instalar Trivy para escaneos internos (método robusto)
+USER root
+RUN apk add --no-cache bash \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
+    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.54.0/trivy_0.54.0_Linux-${ARCH}.tar.gz" | \
+    tar -xz -C /usr/local/bin trivy \
+    && chmod +x /usr/local/bin/trivy
+
+# Copiar script de inicio para Cloud Run (como root)
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+# Crear directorio para logs (está bien hacerlo como root, el startup.sh lo arregla)
+RUN mkdir -p /home/node/.n8n/logs
 
 # Variables de entorno por defecto para Cloud Run
 ENV NODE_ENV=production
@@ -3239,7 +3236,7 @@ steps:
       - '--concurrency'
       - '80'
       - '--set-env-vars'
-      - 'DB_TYPE=postgresdb,DB_POSTGRESDB_HOST=${_DB_HOST},DB_POSTGRESDB_DATABASE=${_DB_NAME},DB_POSTGRESDB_USER=${_DB_USER},DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=${_N8N_USER},N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},NODE_ENV=production'
+      - 'DB_TYPE=postgresdb,DB_POSTGRESDB_HOST=${_DB_HOST},DB_POSTGRESDB_DATABASE=${_DB_NAME},DB_POSTGRESDB_USER=${_DB_USER},DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},DB_POSTGRESDB_PORT=${_DB_PORT},N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=${_N8N_USER},N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},NODE_ENV=production'
 
 # Opciones de build
 options:
@@ -3252,6 +3249,7 @@ substitutions:
   _DB_NAME: 'n8n_db'
   _DB_USER: 'n8n_user'
   _DB_PASSWORD: 'your-db-password'
+  _DB_PORT: '5432'
   _N8N_ENCRYPTION_KEY: 'your-encryption-key'
   _N8N_USER: 'admin'
   _N8N_PASSWORD: 'your-n8n-password'
