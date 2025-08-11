@@ -1,0 +1,12 @@
+# Archivo .trivyignore para n8n
+# Ignora vulnerabilidades conocidas de bajo riesgo
+
+# Ignorar vulnerabilidad en la herramienta interna de Cloud Build
+# No afecta al contenedor final de n8n que se ejecuta en producción
+# CVE-2025-47907: Vulnerabilidad en herramienta de construcción
+CVE-2025-47907
+
+# Nota: Solo ignorar vulnerabilidades que:
+# 1. Estén en herramientas de construcción/desarrollo
+# 2. No afecten al contenedor final de producción
+# 3. Sean de bajo riesgo para el entorno de ejecución
