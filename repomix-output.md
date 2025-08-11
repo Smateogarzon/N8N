@@ -35,6 +35,7 @@ The content is organized as follows:
 # Directory Structure
 ```
 .gitignore
+.trivyignore
 CHANGELOG.md
 clean-and-start.sh
 cloudbuild-secure.yaml
@@ -69,150 +70,6 @@ verify-dockerfiles.sh
 ```
 
 # Files
-
-## File: test-permissions-fix.sh
-````bash
-#!/bin/bash
-# Script para probar la corrección de permisos en Dockerfiles
-
-set -e
-
-echo "=== Probando corrección de permisos ==="
-
-# Colores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Función para verificar que no hay USER node en los Dockerfiles
-check_dockerfiles() {
-    echo -e "${YELLOW}Verificando Dockerfiles...${NC}"
-    
-    # Verificar Dockerfile principal
-    if grep -q "^USER node" Dockerfile; then
-        echo -e "${RED}❌ ERROR: Dockerfile aún contiene 'USER node'${NC}"
-        return 1
-    else
-        echo -e "${GREEN}✅ Dockerfile: OK - No contiene 'USER node'${NC}"
-    fi
-    
-    # Verificar Dockerfile.cloudrun
-    if grep -q "^USER node" Dockerfile.cloudrun; then
-        echo -e "${RED}❌ ERROR: Dockerfile.cloudrun aún contiene 'USER node'${NC}"
-        return 1
-    else
-        echo -e "${GREEN}✅ Dockerfile.cloudrun: OK - No contiene 'USER node'${NC}"
-    fi
-    
-    # Verificar Dockerfile.with-trivy
-    if grep -q "^USER node" Dockerfile.with-trivy; then
-        echo -e "${RED}❌ ERROR: Dockerfile.with-trivy aún contiene 'USER node'${NC}"
-        return 1
-    else
-        echo -e "${GREEN}✅ Dockerfile.with-trivy: OK - No contiene 'USER node'${NC}"
-    fi
-    
-    return 0
-}
-
-# Función para verificar que los scripts de entrada están correctos
-check_entrypoint_scripts() {
-    echo -e "${YELLOW}Verificando scripts de entrada...${NC}"
-    
-    # Verificar que docker-entrypoint.sh usa gosu
-    if grep -q "gosu node" docker-entrypoint.sh; then
-        echo -e "${GREEN}✅ docker-entrypoint.sh: OK - Usa gosu para bajar privilegios${NC}"
-    else
-        echo -e "${RED}❌ ERROR: docker-entrypoint.sh no usa gosu${NC}"
-        return 1
-    fi
-    
-    # Verificar que startup.sh usa gosu
-    if grep -q "gosu node" startup.sh; then
-        echo -e "${GREEN}✅ startup.sh: OK - Usa gosu para bajar privilegios${NC}"
-    else
-        echo -e "${RED}❌ ERROR: startup.sh no usa gosu${NC}"
-        return 1
-    fi
-    
-    return 0
-}
-
-# Función para probar build local
-test_local_build() {
-    echo -e "${YELLOW}Probando build local...${NC}"
-    
-    # Limpiar imágenes anteriores
-    docker rmi n8n-test-permissions 2>/dev/null || true
-    
-    # Build de prueba
-    if docker build -t n8n-test-permissions .; then
-        echo -e "${GREEN}✅ Build local: OK${NC}"
-        return 0
-    else
-        echo -e "${RED}❌ ERROR: Build local falló${NC}"
-        return 1
-    fi
-}
-
-# Función para probar que el entrypoint se ejecuta como root
-test_entrypoint_permissions() {
-    echo -e "${YELLOW}Probando permisos del entrypoint...${NC}"
-    
-    # Crear contenedor temporal para probar
-    container_id=$(docker create n8n-test-permissions)
-    
-    # Verificar que el entrypoint se ejecuta como root durante la inicialización
-    # El script debe poder crear directorios y hacer chown exitosamente
-    if docker run --rm -e DB_TYPE=sqlite n8n-test-permissions sh -c "echo 'Test completado'" 2>&1 | grep -q "chown.*Operation not permitted"; then
-        echo -e "${RED}❌ ERROR: Entrypoint no tiene permisos de root para chown${NC}"
-        result=1
-    else
-        echo -e "${GREEN}✅ Entrypoint: OK - Tiene permisos de root para operaciones privilegiadas${NC}"
-        result=0
-    fi
-    
-    # Limpiar
-    docker rm $container_id 2>/dev/null || true
-    
-    return $result
-}
-
-# Ejecutar todas las verificaciones
-main() {
-    local exit_code=0
-    
-    check_dockerfiles || exit_code=1
-    check_entrypoint_scripts || exit_code=1
-    
-    if [ $exit_code -eq 0 ]; then
-        echo -e "${YELLOW}¿Quieres probar el build local? (y/n)${NC}"
-        read -r response
-        if [[ "$response" =~ ^[Yy]$ ]]; then
-            test_local_build || exit_code=1
-            
-            if [ $exit_code -eq 0 ]; then
-                test_entrypoint_permissions || exit_code=1
-            fi
-        fi
-    fi
-    
-    echo -e "\n${YELLOW}=== Resumen ===${NC}"
-    if [ $exit_code -eq 0 ]; then
-        echo -e "${GREEN}✅ Todas las verificaciones pasaron${NC}"
-        echo -e "${GREEN}La corrección de permisos está lista para usar${NC}"
-    else
-        echo -e "${RED}❌ Algunas verificaciones fallaron${NC}"
-        echo -e "${RED}Revisa los errores arriba${NC}"
-    fi
-    
-    return $exit_code
-}
-
-# Ejecutar script
-main "$@"
-````
 
 ## File: .gitignore
 ````
@@ -263,6 +120,22 @@ settings.local.json
 *.pem
 *.crt
 secrets/
+````
+
+## File: .trivyignore
+````
+# Archivo .trivyignore para n8n
+# Ignora vulnerabilidades conocidas de bajo riesgo
+
+# Ignorar vulnerabilidad en la herramienta interna de Cloud Build
+# No afecta al contenedor final de n8n que se ejecuta en producción
+# CVE-2025-47907: Vulnerabilidad en herramienta de construcción
+CVE-2025-47907
+
+# Nota: Solo ignorar vulnerabilidades que:
+# 1. Estén en herramientas de construcción/desarrollo
+# 2. No afecten al contenedor final de producción
+# 3. Sean de bajo riesgo para el entorno de ejecución
 ````
 
 ## File: CHANGELOG.md
@@ -2810,6 +2683,150 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 - [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker/)
 ````
 
+## File: test-permissions-fix.sh
+````bash
+#!/bin/bash
+# Script para probar la corrección de permisos en Dockerfiles
+
+set -e
+
+echo "=== Probando corrección de permisos ==="
+
+# Colores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Función para verificar que no hay USER node en los Dockerfiles
+check_dockerfiles() {
+    echo -e "${YELLOW}Verificando Dockerfiles...${NC}"
+    
+    # Verificar Dockerfile principal
+    if grep -q "^USER node" Dockerfile; then
+        echo -e "${RED}❌ ERROR: Dockerfile aún contiene 'USER node'${NC}"
+        return 1
+    else
+        echo -e "${GREEN}✅ Dockerfile: OK - No contiene 'USER node'${NC}"
+    fi
+    
+    # Verificar Dockerfile.cloudrun
+    if grep -q "^USER node" Dockerfile.cloudrun; then
+        echo -e "${RED}❌ ERROR: Dockerfile.cloudrun aún contiene 'USER node'${NC}"
+        return 1
+    else
+        echo -e "${GREEN}✅ Dockerfile.cloudrun: OK - No contiene 'USER node'${NC}"
+    fi
+    
+    # Verificar Dockerfile.with-trivy
+    if grep -q "^USER node" Dockerfile.with-trivy; then
+        echo -e "${RED}❌ ERROR: Dockerfile.with-trivy aún contiene 'USER node'${NC}"
+        return 1
+    else
+        echo -e "${GREEN}✅ Dockerfile.with-trivy: OK - No contiene 'USER node'${NC}"
+    fi
+    
+    return 0
+}
+
+# Función para verificar que los scripts de entrada están correctos
+check_entrypoint_scripts() {
+    echo -e "${YELLOW}Verificando scripts de entrada...${NC}"
+    
+    # Verificar que docker-entrypoint.sh usa gosu
+    if grep -q "gosu node" docker-entrypoint.sh; then
+        echo -e "${GREEN}✅ docker-entrypoint.sh: OK - Usa gosu para bajar privilegios${NC}"
+    else
+        echo -e "${RED}❌ ERROR: docker-entrypoint.sh no usa gosu${NC}"
+        return 1
+    fi
+    
+    # Verificar que startup.sh usa gosu
+    if grep -q "gosu node" startup.sh; then
+        echo -e "${GREEN}✅ startup.sh: OK - Usa gosu para bajar privilegios${NC}"
+    else
+        echo -e "${RED}❌ ERROR: startup.sh no usa gosu${NC}"
+        return 1
+    fi
+    
+    return 0
+}
+
+# Función para probar build local
+test_local_build() {
+    echo -e "${YELLOW}Probando build local...${NC}"
+    
+    # Limpiar imágenes anteriores
+    docker rmi n8n-test-permissions 2>/dev/null || true
+    
+    # Build de prueba
+    if docker build -t n8n-test-permissions .; then
+        echo -e "${GREEN}✅ Build local: OK${NC}"
+        return 0
+    else
+        echo -e "${RED}❌ ERROR: Build local falló${NC}"
+        return 1
+    fi
+}
+
+# Función para probar que el entrypoint se ejecuta como root
+test_entrypoint_permissions() {
+    echo -e "${YELLOW}Probando permisos del entrypoint...${NC}"
+    
+    # Crear contenedor temporal para probar
+    container_id=$(docker create n8n-test-permissions)
+    
+    # Verificar que el entrypoint se ejecuta como root durante la inicialización
+    # El script debe poder crear directorios y hacer chown exitosamente
+    if docker run --rm -e DB_TYPE=sqlite n8n-test-permissions sh -c "echo 'Test completado'" 2>&1 | grep -q "chown.*Operation not permitted"; then
+        echo -e "${RED}❌ ERROR: Entrypoint no tiene permisos de root para chown${NC}"
+        result=1
+    else
+        echo -e "${GREEN}✅ Entrypoint: OK - Tiene permisos de root para operaciones privilegiadas${NC}"
+        result=0
+    fi
+    
+    # Limpiar
+    docker rm $container_id 2>/dev/null || true
+    
+    return $result
+}
+
+# Ejecutar todas las verificaciones
+main() {
+    local exit_code=0
+    
+    check_dockerfiles || exit_code=1
+    check_entrypoint_scripts || exit_code=1
+    
+    if [ $exit_code -eq 0 ]; then
+        echo -e "${YELLOW}¿Quieres probar el build local? (y/n)${NC}"
+        read -r response
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            test_local_build || exit_code=1
+            
+            if [ $exit_code -eq 0 ]; then
+                test_entrypoint_permissions || exit_code=1
+            fi
+        fi
+    fi
+    
+    echo -e "\n${YELLOW}=== Resumen ===${NC}"
+    if [ $exit_code -eq 0 ]; then
+        echo -e "${GREEN}✅ Todas las verificaciones pasaron${NC}"
+        echo -e "${GREEN}La corrección de permisos está lista para usar${NC}"
+    else
+        echo -e "${RED}❌ Algunas verificaciones fallaron${NC}"
+        echo -e "${RED}Revisa los errores arriba${NC}"
+    fi
+    
+    return $exit_code
+}
+
+# Ejecutar script
+main "$@"
+````
+
 ## File: test-simple-n8n.sh
 ````bash
 #!/bin/bash
@@ -3019,6 +3036,74 @@ done
 echo -e "${GREEN}=== Verificación completada ===${NC}"
 ````
 
+## File: startup.sh
+````bash
+#!/bin/sh
+# Script de inicio para Cloud Run - Maneja puerto dinámico
+
+set -e
+
+echo "=== Iniciando n8n para Cloud Run ==="
+
+# Manejar puerto dinámico de Cloud Run
+if [ -n "$PORT" ]; then
+    echo "Puerto Cloud Run detectado: $PORT"
+    export N8N_PORT=$PORT
+    echo "Configurando n8n para escuchar en puerto: $N8N_PORT"
+else
+    echo "Puerto Cloud Run no detectado, usando puerto por defecto: ${N8N_PORT:-5678}"
+    export N8N_PORT=${N8N_PORT:-5678}
+fi
+
+# Configurar host para Cloud Run
+export N8N_HOST=${N8N_HOST:-0.0.0.0}
+export N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+
+# Validar variables de entorno críticas
+if [ -z "$DB_TYPE" ]; then
+    echo "Error: DB_TYPE no está definido"
+    exit 1
+fi
+
+if [ "$DB_TYPE" = "postgresdb" ]; then
+    required_vars="DB_POSTGRESDB_HOST DB_POSTGRESDB_DATABASE DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD"
+    for var in $required_vars; do
+        if [ -z "$(eval echo \$$var)" ]; then
+            echo "Error: $var no está definido para PostgreSQL"
+            exit 1
+        fi
+    done
+fi
+
+# Crear directorios necesarios
+mkdir -p /home/node/.n8n/logs
+mkdir -p /home/node/.n8n/data
+chown -R node:node /home/node/.n8n
+
+# Mostrar configuración final
+echo "=== Configuración final ==="
+echo "Host: $N8N_HOST"
+echo "Puerto: $N8N_PORT"
+echo "Protocolo: $N8N_PROTOCOL"
+echo "Base de datos: $DB_TYPE"
+if [ "$DB_TYPE" = "postgresdb" ]; then
+    echo "PostgreSQL Host: $DB_POSTGRESDB_HOST"
+    echo "PostgreSQL Database: $DB_POSTGRESDB_DATABASE"
+    echo "PostgreSQL User: $DB_POSTGRESDB_USER"
+fi
+echo "=========================="
+
+# Cambiar al usuario node y ejecutar n8n
+echo "Iniciando n8n con logs detallados..."
+# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
+gosu node n8n start || {
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  exit 1
+}
+````
+
 ## File: Dockerfile
 ````dockerfile
 # Dockerfile para n8n - Optimizado para producción
@@ -3142,74 +3227,6 @@ EXPOSE 8080
 
 # Usar script de inicio para Cloud Run
 ENTRYPOINT ["/startup.sh"]
-````
-
-## File: startup.sh
-````bash
-#!/bin/sh
-# Script de inicio para Cloud Run - Maneja puerto dinámico
-
-set -e
-
-echo "=== Iniciando n8n para Cloud Run ==="
-
-# Manejar puerto dinámico de Cloud Run
-if [ -n "$PORT" ]; then
-    echo "Puerto Cloud Run detectado: $PORT"
-    export N8N_PORT=$PORT
-    echo "Configurando n8n para escuchar en puerto: $N8N_PORT"
-else
-    echo "Puerto Cloud Run no detectado, usando puerto por defecto: ${N8N_PORT:-5678}"
-    export N8N_PORT=${N8N_PORT:-5678}
-fi
-
-# Configurar host para Cloud Run
-export N8N_HOST=${N8N_HOST:-0.0.0.0}
-export N8N_PROTOCOL=${N8N_PROTOCOL:-http}
-
-# Validar variables de entorno críticas
-if [ -z "$DB_TYPE" ]; then
-    echo "Error: DB_TYPE no está definido"
-    exit 1
-fi
-
-if [ "$DB_TYPE" = "postgresdb" ]; then
-    required_vars="DB_POSTGRESDB_HOST DB_POSTGRESDB_DATABASE DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD"
-    for var in $required_vars; do
-        if [ -z "$(eval echo \$$var)" ]; then
-            echo "Error: $var no está definido para PostgreSQL"
-            exit 1
-        fi
-    done
-fi
-
-# Crear directorios necesarios
-mkdir -p /home/node/.n8n/logs
-mkdir -p /home/node/.n8n/data
-chown -R node:node /home/node/.n8n
-
-# Mostrar configuración final
-echo "=== Configuración final ==="
-echo "Host: $N8N_HOST"
-echo "Puerto: $N8N_PORT"
-echo "Protocolo: $N8N_PROTOCOL"
-echo "Base de datos: $DB_TYPE"
-if [ "$DB_TYPE" = "postgresdb" ]; then
-    echo "PostgreSQL Host: $DB_POSTGRESDB_HOST"
-    echo "PostgreSQL Database: $DB_POSTGRESDB_DATABASE"
-    echo "PostgreSQL User: $DB_POSTGRESDB_USER"
-fi
-echo "=========================="
-
-# Cambiar al usuario node y ejecutar n8n
-echo "Iniciando n8n con logs detallados..."
-# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
-gosu node n8n start || {
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  exit 1
-}
 ````
 
 ## File: Dockerfile.cloudrun
@@ -3372,6 +3389,7 @@ steps:
       - '2Gi'
       - '--cpu'
       - '2'
+      - '--cpu-boost'
       - '--max-instances'
       - '5'
       - '--timeout'

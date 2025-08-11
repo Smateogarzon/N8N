@@ -94,6 +94,7 @@ steps:
       - '2Gi'
       - '--cpu'
       - '2'
+      - '--cpu-boost'
       - '--max-instances'
       - '5'
       - '--timeout'
