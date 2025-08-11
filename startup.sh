@@ -54,5 +54,11 @@ fi
 echo "=========================="
 
 # Cambiar al usuario node y ejecutar n8n
-echo "Iniciando n8n..."
-exec gosu node n8n start 
+echo "Iniciando n8n con logs detallados..."
+# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
+gosu node n8n start || {
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  exit 1
+} 

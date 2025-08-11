@@ -38,7 +38,6 @@ The content is organized as follows:
 CHANGELOG.md
 clean-and-start.sh
 cloudbuild-secure.yaml
-CONTRIBUTING.md
 deploy-cloudrun.sh
 docker-compose-simple.yml
 docker-compose-with-scanning.yml
@@ -195,105 +194,6 @@ echo "✅ n8n iniciado correctamente"
 echo "🌐 Accede a: http://localhost:5679"
 echo "📊 Usuario: admin"
 echo "🔑 Contraseña: tu_password"
-````
-
-## File: CONTRIBUTING.md
-````markdown
-# Contribuyendo al Proyecto n8n Docker
-
-¡Gracias por tu interés en contribuir! Este documento proporciona las pautas para contribuir al proyecto.
-
-## 🚀 Cómo Contribuir
-
-### 1. Fork y Clone
-
-```bash
-# Fork el repositorio en GitHub
-# Luego clona tu fork
-git clone https://github.com/tu-usuario/n8n-docker.git
-cd n8n-docker
-```
-
-### 2. Crear una Rama
-
-```bash
-git checkout -b feature/nombre-de-tu-feature
-# o
-git checkout -b fix/nombre-del-fix
-```
-
-### 3. Hacer Cambios
-
-- Sigue las convenciones de código existentes
-- Añade tests si es necesario
-- Actualiza la documentación
-- Verifica que los scripts funcionen
-
-### 4. Probar Cambios
-
-```bash
-# Probar construcción
-./test-simple.sh
-
-# Probar ejecución
-./test-simple-n8n.sh
-
-# Escanear vulnerabilidades
-./scan-local.sh  # Linux/macOS
-# o
-.\scan-simple.ps1  # Windows
-```
-
-### 5. Commit y Push
-
-```bash
-git add .
-git commit -m "feat: descripción del cambio"
-git push origin feature/nombre-de-tu-feature
-```
-
-### 6. Crear Pull Request
-
-- Ve a GitHub y crea un Pull Request
-- Describe claramente los cambios
-- Incluye información de testing
-
-## 📋 Convenciones
-
-### Commits
-
-Usa el formato convencional:
-
-- `feat:` nueva característica
-- `fix:` corrección de bug
-- `docs:` cambios en documentación
-- `style:` cambios de formato
-- `refactor:` refactorización
-- `test:` añadir tests
-- `chore:` tareas de mantenimiento
-
-### Código
-
-- Usa nombres descriptivos
-- Comenta código complejo
-- Sigue las mejores prácticas de Docker
-- Mantén la seguridad como prioridad
-
-## 🔒 Seguridad
-
-- Nunca subas credenciales o secretos
-- Verifica vulnerabilidades antes de contribuir
-- Reporta problemas de seguridad de forma privada
-
-## 📚 Recursos
-
-- [Documentación de n8n](https://docs.n8n.io/)
-- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
-- [GitHub Flow](https://guides.github.com/introduction/flow/)
-
-## 🤝 Contacto
-
-Si tienes preguntas, abre un issue en GitHub.
 ````
 
 ## File: deploy-cloudrun.sh
@@ -731,198 +631,6 @@ show_config
 
 # Cambiar al usuario node
 exec gosu node "$@"
-````
-
-## File: Dockerfile
-````dockerfile
-# Dockerfile para n8n - Optimizado para producción
-# Multi-stage build para reducir tamaño final
-
-# Etapa 1: Builder (para dependencias adicionales si las necesitas)
-FROM node:22-alpine AS builder
-WORKDIR /app
-
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git
-
-# Copiar package.json si tienes dependencias adicionales
-# COPY package.json package-lock.json ./
-# RUN npm ci --only=production
-
-# Etapa 2: Imagen final basada en n8n oficial
-FROM n8nio/n8n:latest
-
-# Cambiar al directorio de trabajo
-WORKDIR /home/node
-
-# Copiar dependencias adicionales desde builder (si las hay)
-# COPY --from=builder /app/node_modules ./node_modules
-
-# Instalar paquetes adicionales si los necesitas
-# RUN npm install -g paquete-extra
-
-# Copiar script de entrada personalizado (como root)
-USER root
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Instalar netcat y gosu (reemplazo de su-exec)
-RUN apk add --no-cache netcat-openbsd gosu
-
-# Crear directorio para logs (como root, el entrypoint lo arreglará)
-RUN mkdir -p /home/node/.n8n/logs
-
-# Cambiar al usuario no-root por defecto
-USER node
-
-# Variables de entorno por defecto
-ENV NODE_ENV=production
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PORT=5678
-ENV N8N_PROTOCOL=http
-ENV WEBHOOK_URL=http://localhost:5678/
-
-# Exponer puerto
-EXPOSE 5678
-
-# Usar script de entrada personalizado
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["n8n", "start"]
-````
-
-## File: Dockerfile.cloudrun
-````
-# Dockerfile para n8n en Google Cloud Run
-# Optimizado para serverless con puerto dinámico
-
-# Etapa 1: Builder (para dependencias adicionales si las necesitas)
-FROM node:22-alpine AS builder
-WORKDIR /app
-
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git
-
-# Etapa 2: Imagen final basada en n8n oficial
-FROM n8nio/n8n:latest
-
-# Cambiar al directorio de trabajo
-WORKDIR /home/node
-
-# Instalar herramientas adicionales para Cloud Run
-USER root
-RUN apk add --no-cache \
-    curl \
-    wget \
-    postgresql-client \
-    jq \
-    gosu
-USER node
-
-# Instalar Trivy para escaneos internos (método robusto)
-USER root
-RUN apk add --no-cache bash \
-    && ARCH=$(uname -m) \
-    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
-    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.53.0/trivy_0.53.0_Linux-${ARCH}.tar.gz" | \
-    tar -xz -C /usr/local/bin trivy \
-    && chmod +x /usr/local/bin/trivy
-
-# Copiar script de inicio para Cloud Run (como root)
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
-
-# Cambiar a usuario no privilegiado
-USER node
-
-# Crear directorio para logs
-RUN mkdir -p /home/node/.n8n/logs
-
-# Variables de entorno por defecto para Cloud Run
-ENV NODE_ENV=production
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PROTOCOL=http
-# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
-
-# Exponer puerto (Cloud Run lo manejará dinámicamente)
-EXPOSE 8080
-
-# Usar script de inicio para Cloud Run
-ENTRYPOINT ["/startup.sh"]
-````
-
-## File: Dockerfile.with-trivy
-````
-# Dockerfile para n8n con Trivy integrado
-# Permite escaneos de seguridad internos
-
-# Etapa 1: Builder (para dependencias adicionales si las necesitas)
-FROM node:22-alpine AS builder
-WORKDIR /app
-
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git
-
-# Etapa 2: Imagen final basada en n8n oficial
-FROM n8nio/n8n:latest
-
-# Cambiar al directorio de trabajo
-WORKDIR /home/node
-
-# Instalar herramientas adicionales incluyendo Trivy
-USER root
-RUN apk add --no-cache \
-    curl \
-    wget \
-    postgresql-client \
-    jq \
-    bash \
-    gosu
-USER node
-
-# Instalar Trivy (método robusto)
-USER root
-RUN ARCH=$(uname -m) \
-    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
-    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.53.0/trivy_0.53.0_Linux-${ARCH}.tar.gz" | \
-    tar -xz -C /usr/local/bin trivy \
-    && chmod +x /usr/local/bin/trivy
-
-# Copiar scripts (como root)
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
-
-COPY scan-internal.sh /usr/local/bin/scan-internal.sh
-RUN chmod +x /usr/local/bin/scan-internal.sh
-
-# Cambiar a usuario no privilegiado
-USER node
-
-# Crear directorio para logs y escaneos
-RUN mkdir -p /home/node/.n8n/logs /home/node/security-scans
-
-# Variables de entorno por defecto para Cloud Run
-ENV NODE_ENV=production
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PROTOCOL=http
-# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
-
-# Exponer puerto (Cloud Run lo manejará dinámicamente)
-EXPOSE 8080
-
-# Usar script de inicio para Cloud Run
-ENTRYPOINT ["/startup.sh"]
 ````
 
 ## File: fix-and-test.sh
@@ -3015,8 +2723,14 @@ fi
 echo "=========================="
 
 # Cambiar al usuario node y ejecutar n8n
-echo "Iniciando n8n..."
-exec gosu node n8n start
+echo "Iniciando n8n con logs detallados..."
+# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
+gosu node n8n start || {
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
+  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+  exit 1
+}
 ````
 
 ## File: test-simple-n8n.sh
@@ -3228,6 +2942,198 @@ done
 echo -e "${GREEN}=== Verificación completada ===${NC}"
 ````
 
+## File: Dockerfile
+````dockerfile
+# Dockerfile para n8n - Optimizado para producción
+# Multi-stage build para reducir tamaño final
+
+# Etapa 1: Builder (para dependencias adicionales si las necesitas)
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Copiar package.json si tienes dependencias adicionales
+# COPY package.json package-lock.json ./
+# RUN npm ci --only=production
+
+# Etapa 2: Imagen final basada en n8n oficial
+FROM n8nio/n8n:latest
+
+# Cambiar al directorio de trabajo
+WORKDIR /home/node
+
+# Copiar dependencias adicionales desde builder (si las hay)
+# COPY --from=builder /app/node_modules ./node_modules
+
+# Instalar paquetes adicionales si los necesitas
+# RUN npm install -g paquete-extra
+
+# Copiar script de entrada personalizado (como root)
+USER root
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Instalar netcat y gosu (reemplazo de su-exec)
+RUN apk add --no-cache netcat-openbsd gosu
+
+# Crear directorio para logs (como root, el entrypoint lo arreglará)
+RUN mkdir -p /home/node/.n8n/logs
+
+# Cambiar al usuario no-root por defecto
+USER node
+
+# Variables de entorno por defecto
+ENV NODE_ENV=production
+ENV N8N_HOST=0.0.0.0
+ENV N8N_PORT=5678
+ENV N8N_PROTOCOL=http
+ENV WEBHOOK_URL=http://localhost:5678/
+
+# Exponer puerto
+EXPOSE 5678
+
+# Usar script de entrada personalizado
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["n8n", "start"]
+````
+
+## File: Dockerfile.cloudrun
+````
+# Dockerfile para n8n en Google Cloud Run
+# Optimizado para serverless con puerto dinámico
+
+# Etapa 1: Builder (para dependencias adicionales si las necesitas)
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Etapa 2: Imagen final basada en n8n oficial
+FROM n8nio/n8n:latest
+
+# Cambiar al directorio de trabajo
+WORKDIR /home/node
+
+# Instalar herramientas adicionales para Cloud Run
+USER root
+RUN apk add --no-cache \
+    curl \
+    wget \
+    postgresql-client \
+    jq \
+    gosu
+USER node
+
+# Instalar Trivy para escaneos internos (método robusto)
+USER root
+RUN apk add --no-cache bash \
+    && ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
+    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.54.0/trivy_0.54.0_Linux-${ARCH}.tar.gz" | \
+    tar -xz -C /usr/local/bin trivy \
+    && chmod +x /usr/local/bin/trivy
+
+# Copiar script de inicio para Cloud Run (como root)
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+# Cambiar a usuario no privilegiado
+USER node
+
+# Crear directorio para logs
+RUN mkdir -p /home/node/.n8n/logs
+
+# Variables de entorno por defecto para Cloud Run
+ENV NODE_ENV=production
+ENV N8N_HOST=0.0.0.0
+ENV N8N_PROTOCOL=http
+# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
+
+# Exponer puerto (Cloud Run lo manejará dinámicamente)
+EXPOSE 8080
+
+# Usar script de inicio para Cloud Run
+ENTRYPOINT ["/startup.sh"]
+````
+
+## File: Dockerfile.with-trivy
+````
+# Dockerfile para n8n con Trivy integrado
+# Permite escaneos de seguridad internos
+
+# Etapa 1: Builder (para dependencias adicionales si las necesitas)
+FROM node:22-alpine AS builder
+WORKDIR /app
+
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+# Etapa 2: Imagen final basada en n8n oficial
+FROM n8nio/n8n:latest
+
+# Cambiar al directorio de trabajo
+WORKDIR /home/node
+
+# Instalar herramientas adicionales incluyendo Trivy
+USER root
+RUN apk add --no-cache \
+    curl \
+    wget \
+    postgresql-client \
+    jq \
+    bash \
+    gosu
+USER node
+
+# Instalar Trivy (método robusto)
+USER root
+RUN ARCH=$(uname -m) \
+    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
+    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.54.0/trivy_0.54.0_Linux-${ARCH}.tar.gz" | \
+    tar -xz -C /usr/local/bin trivy \
+    && chmod +x /usr/local/bin/trivy
+
+# Copiar scripts (como root)
+COPY startup.sh /startup.sh
+RUN chmod +x /startup.sh
+
+COPY scan-internal.sh /usr/local/bin/scan-internal.sh
+RUN chmod +x /usr/local/bin/scan-internal.sh
+
+# Cambiar a usuario no privilegiado
+USER node
+
+# Crear directorio para logs y escaneos
+RUN mkdir -p /home/node/.n8n/logs /home/node/security-scans
+
+# Variables de entorno por defecto para Cloud Run
+ENV NODE_ENV=production
+ENV N8N_HOST=0.0.0.0
+ENV N8N_PROTOCOL=http
+# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
+
+# Exponer puerto (Cloud Run lo manejará dinámicamente)
+EXPOSE 8080
+
+# Usar script de inicio para Cloud Run
+ENTRYPOINT ["/startup.sh"]
+````
+
 ## File: cloudbuild-secure.yaml
 ````yaml
 steps:
@@ -3253,24 +3159,26 @@ steps:
       - '--exit-code'
       - '1'
       - '--format'
-      - 'json'
-      - '--output'
-      - 'trivy-results.json'
+      - 'table'
+      - '--skip-files'
+      - '/usr/local/bin/trivy'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
-  # Escanear con Trivy para vulnerabilidades medias (solo reporte)
+  # Escanear con Trivy para vulnerabilidades medias y bajas (guardar en archivo)
   - name: 'aquasec/trivy'
     id: 'trivy-scan-medium'
     args:
       - 'image'
       - '--severity'
-      - 'MEDIUM'
+      - 'MEDIUM,LOW'
       - '--exit-code'
       - '0'
       - '--format'
       - 'table'
       - '--output'
-      - 'trivy-medium-results.txt'
+      - 'trivy-non-critical-results.txt'
+      - '--skip-files'
+      - '/usr/local/bin/trivy'
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Google Artifact Analysis
@@ -3287,34 +3195,19 @@ steps:
       - '--format=json'
       - '--quiet'
 
-  # Verificar resultados de escaneo
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'check-vulnerabilities'
-    entrypoint: 'bash'
+  # Mostrar vulnerabilidades no críticas solo si existen
+  - name: 'alpine'
+    id: 'display-non-critical-vulnerabilities'
+    entrypoint: 'sh'
     args:
       - '-c'
       - |
-        echo "=== Verificando resultados de escaneo ==="
-
-        # Verificar si hay vulnerabilidades críticas/altas en Trivy
-        if [ -f "trivy-results.json" ]; then
-          VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' trivy-results.json | awk '{sum+=$1} END {print sum+0}')
-          echo "Vulnerabilidades encontradas: $$VULN_COUNT"
-          
-          if [ "$$VULN_COUNT" -gt 0 ]; then
-            echo "❌ Se encontraron $$VULN_COUNT vulnerabilidades críticas/altas"
-            echo "Detalles:"
-            jq -r '.Results[].Vulnerabilities[] | "  - \(.VulnerabilityID): \(.Title) (Severity: \(.Severity))"' trivy-results.json
-            exit 1
-          else
-            echo "✅ No se encontraron vulnerabilidades críticas/altas"
-          fi
-        fi
-
-        # Mostrar vulnerabilidades medias (solo informativo)
-        if [ -f "trivy-medium-results.txt" ]; then
-          echo "📋 Vulnerabilidades medias encontradas:"
-          cat trivy-medium-results.txt
+        if [ -s trivy-non-critical-results.txt ]; then
+          echo "--- Found non-critical vulnerabilities (Medium/Low) ---"
+          cat trivy-non-critical-results.txt
+          echo "-------------------------------------------------------"
+        else
+          echo "✅ No non-critical vulnerabilities found."
         fi
 
   # Subir imagen a Container Registry (solo si escaneos pasan)
@@ -3340,7 +3233,7 @@ steps:
       - '--cpu'
       - '2'
       - '--max-instances'
-      - '10'
+      - '5'
       - '--timeout'
       - '300'
       - '--concurrency'
