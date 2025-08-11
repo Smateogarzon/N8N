@@ -26,7 +26,6 @@ RUN apk add --no-cache \
     postgresql-client \
     jq \
     gosu
-USER node
 
 # Instalar Trivy para escaneos internos (método robusto)
 USER root
@@ -43,6 +42,8 @@ RUN chmod +x /startup.sh
 
 # Crear directorio para logs (está bien hacerlo como root, el startup.sh lo arregla)
 RUN mkdir -p /home/node/.n8n/logs
+
+# ---> ELIMINADA LA LÍNEA "USER node" - El startup.sh manejará los privilegios <---
 
 # Variables de entorno por defecto para Cloud Run
 ENV NODE_ENV=production

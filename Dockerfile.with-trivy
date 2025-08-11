@@ -27,7 +27,6 @@ RUN apk add --no-cache \
     jq \
     bash \
     gosu
-USER node
 
 # Instalar Trivy (método robusto)
 USER root
@@ -44,10 +43,9 @@ RUN chmod +x /startup.sh
 COPY scan-internal.sh /usr/local/bin/scan-internal.sh
 RUN chmod +x /usr/local/bin/scan-internal.sh
 
-# Cambiar a usuario no privilegiado
-USER node
+# ---> ELIMINADA LA LÍNEA "USER node" - El startup.sh manejará los privilegios <---
 
-# Crear directorio para logs y escaneos
+# Crear directorio para logs y escaneos (como root, el startup.sh lo arreglará)
 RUN mkdir -p /home/node/.n8n/logs /home/node/security-scans
 
 # Variables de entorno por defecto para Cloud Run

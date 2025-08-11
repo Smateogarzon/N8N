@@ -39,8 +39,7 @@ RUN apk add --no-cache netcat-openbsd gosu
 # Crear directorio para logs (como root, el entrypoint lo arreglará)
 RUN mkdir -p /home/node/.n8n/logs
 
-# Cambiar al usuario no-root por defecto
-USER node
+# ---> ELIMINADA LA LÍNEA "USER node" - El entrypoint manejará los privilegios <---
 
 # Variables de entorno por defecto
 ENV NODE_ENV=production
