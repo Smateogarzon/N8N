@@ -107,7 +107,7 @@ steps:
 # Opciones de build
 options:
   logging: CLOUD_LOGGING_ONLY
-  machineType: 'E2_HIGHCPU_8' # Más recursos para escaneos
+  machineType: 'E2_MEDIUM'
 
 # Sustituciones (se definen en Cloud Build)
 substitutions:
