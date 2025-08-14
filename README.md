@@ -29,8 +29,16 @@ docker-compose up -d
 ### Despliegue en Cloud Run
 
 ```bash
-# Desplegar a Google Cloud Run
-./deploy-cloudrun.sh
+# 1. Configurar Cloud SQL y variables de entorno (OBLIGATORIO)
+./setup-cloudsql.sh
+
+# 2. Solucionar problema de entrypoint con configuración oficial
+./fix-entrypoint-issue.sh
+
+# 3. Desplegar (automático con git push)
+git add .
+git commit -m "fix: usar entrypoint oficial de n8n y configuración correcta"
+git push origin main
 ```
 
 ## 📁 Estructura del Proyecto
