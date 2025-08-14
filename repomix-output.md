@@ -3792,9 +3792,9 @@ steps:
       - '8080'
       - '--set-env-vars'
       - >
+        NODE_ENV=production,
         DB_TYPE=postgresdb,
         DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},
-        DB_POSTGRESDB_PORT=5432,
         DB_POSTGRESDB_DATABASE=${_DB_NAME},
         DB_POSTGRESDB_USER=${_DB_USER},
         DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},
@@ -3802,20 +3802,11 @@ steps:
         N8N_BASIC_AUTH_ACTIVE=true,
         N8N_BASIC_AUTH_USER=${_N8N_USER},
         N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},
-        NODE_ENV=production,
-        N8N_HOST=0.0.0.0,
-        N8N_PORT=8080,
-        N8N_PROTOCOL=https,
         N8N_DISABLE_UI=false,
         N8N_PATH=/,
+        WEBHOOK_URL=${_BASE_URL},
         N8N_EDITOR_BASE_URL=${_BASE_URL},
-        WEBHOOK_URL=${_BASE_URL}/,
-        N8N_PUBLIC_API_DISABLED=false,
-        N8N_PUBLIC_API_ENDPOINT=api,
-        N8N_ENDPOINT_REST=rest,
-        N8N_ENDPOINT_WEBHOOK=webhook,
-        N8N_ENDPOINT_WEBHOOK_TEST=webhook-test,
-        N8N_ENDPOINT_WEBHOOK_WAIT=webhook-waiting
+        N8N_PROXY_HOPS=1
 
 # Opciones de build
 options:
@@ -3824,13 +3815,12 @@ options:
 
 # Sustituciones (se definen en Cloud Build)
 substitutions:
-  # Configuración de Cloud SQL
-  _CLOUDSQL_INSTANCE: 'your-project-id:us-central1:your-instance-name'
+  _CLOUDSQL_INSTANCE: 'infinity-420816:us-central1:n8n-postgres'
   _DB_NAME: 'n8n_db'
   _DB_USER: 'n8n_user'
-  _DB_PASSWORD: 'your-db-password'
-  _N8N_ENCRYPTION_KEY: 'your-encryption-key'
-  _N8N_USER: 'admin'
-  _N8N_PASSWORD: 'your-n8n-password'
+  _DB_PASSWORD: ''
+  _N8N_ENCRYPTION_KEY: ''
+  _N8N_USER: 'Mateo'
+  _N8N_PASSWORD: ''
   _BASE_URL: 'https://n8n-1059853171455.us-central1.run.app'
 ````
