@@ -3,21 +3,25 @@ This file is a merged representation of the entire codebase, combined into a sin
 # File Summary
 
 ## Purpose
+
 This file contains a packed representation of the entire repository's contents.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
 
 ## File Format
+
 The content is organized as follows:
+
 1. This summary section
 2. Repository information
 3. Directory structure
 4. Repository files (if enabled)
 5. Multiple file entries, each consisting of:
-  a. A header with the file path (## File: path/to/file)
-  b. The full contents of the file in a code block
+   a. A header with the file path (## File: path/to/file)
+   b. The full contents of the file in a code block
 
 ## Usage Guidelines
+
 - This file should be treated as read-only. Any changes should be made to the
   original repository files, not this packed version.
 - When processing this file, use the file path to distinguish
@@ -26,6 +30,7 @@ The content is organized as follows:
   the same level of security as you would the original repository.
 
 ## Notes
+
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
 - Files matching patterns in .gitignore are excluded
@@ -33,6 +38,7 @@ The content is organized as follows:
 - Files are sorted by Git change count (files with more changes are at the bottom)
 
 # Directory Structure
+
 ```
 .gitignore
 .trivyignore
@@ -48,6 +54,7 @@ Dockerfile
 Dockerfile.cloudrun
 Dockerfile.with-trivy
 fix-and-test.sh
+fix-entrypoint-issue.sh
 flow.json
 LICENSE
 package.json
@@ -73,7 +80,8 @@ verify-dockerfiles.sh
 # Files
 
 ## File: .gitignore
-````
+
+```
 # Archivos de entorno
 .env
 .env.local
@@ -121,10 +129,11 @@ settings.local.json
 *.pem
 *.crt
 secrets/
-````
+```
 
 ## File: .trivyignore
-````
+
+```
 # Archivo .trivyignore para n8n
 # Ignora vulnerabilidades conocidas de bajo riesgo
 
@@ -137,10 +146,11 @@ CVE-2025-47907
 # 1. Estén en herramientas de construcción/desarrollo
 # 2. No afecten al contenedor final de producción
 # 3. Sean de bajo riesgo para el entorno de ejecución
-````
+```
 
 ## File: CHANGELOG.md
-````markdown
+
+```markdown
 # Changelog
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
@@ -183,10 +193,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Integración con Kubernetes
 - Métricas y monitoreo avanzado
 - Backup automático de datos
-````
+```
 
 ## File: clean-and-start.sh
-````bash
+
+```bash
 #!/bin/bash
 set -e
 
@@ -213,10 +224,11 @@ echo "✅ n8n iniciado correctamente"
 echo "🌐 Accede a: http://localhost:5679"
 echo "📊 Usuario: admin"
 echo "🔑 Contraseña: tu_password"
-````
+```
 
 ## File: deploy-cloudrun.sh
-````bash
+
+```bash
 #!/bin/bash
 # Script de despliegue para Google Cloud Run
 
@@ -297,10 +309,11 @@ echo "CPU: 2"
 echo "Máx instancias: 10"
 echo "Timeout: 300s"
 echo "Concurrencia: 80"
-````
+```
 
 ## File: docker-compose-simple.yml
-````yaml
+
+```yaml
 services:
   # Base de datos PostgreSQL
   postgres:
@@ -362,10 +375,11 @@ volumes:
 networks:
   n8n-network-simple:
     driver: bridge
-````
+```
 
 ## File: docker-compose-with-scanning.yml
-````yaml
+
+```yaml
 version: '3.8'
 
 services:
@@ -474,10 +488,11 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
-````
+```
 
 ## File: docker-compose.yml
-````yaml
+
+```yaml
 services:
   # Base de datos PostgreSQL
   postgres:
@@ -565,10 +580,11 @@ volumes:
 networks:
   n8n-network:
     driver: bridge
-````
+```
 
 ## File: docker-entrypoint.sh
-````bash
+
+```bash
 #!/bin/sh
 # Script de entrada personalizado para n8n Docker
 
@@ -580,7 +596,7 @@ validate_env() {
         echo "Error: DB_TYPE no está definido"
         exit 1
     fi
-    
+
     if [ "$DB_TYPE" = "postgresdb" ]; then
         required_vars="DB_POSTGRESDB_HOST DB_POSTGRESDB_DATABASE DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD"
         for var in $required_vars; do
@@ -618,7 +634,7 @@ set_defaults() {
     export N8N_PORT=${N8N_PORT:-5678}
     export N8N_PROTOCOL=${N8N_PROTOCOL:-http}
     export NODE_ENV=${NODE_ENV:-production}
-    
+
     # Si no hay encryption key, n8n la generará automáticamente
     if [ -z "$N8N_ENCRYPTION_KEY" ]; then
         echo "N8N_ENCRYPTION_KEY no definida - n8n generará una automáticamente"
@@ -650,10 +666,11 @@ show_config
 
 # Cambiar al usuario node
 exec gosu node "$@"
-````
+```
 
 ## File: fix-and-test.sh
-````bash
+
+```bash
 #!/bin/bash
 set -e
 
@@ -689,10 +706,254 @@ echo "=== Información de acceso ==="
 echo "🌐 n8n: http://localhost:5680"
 echo ""
 echo "Si n8n responde, deberías poder acceder ahora"
-````
+```
+
+## File: fix-entrypoint-issue.sh
+
+```bash
+#!/bin/bash
+# Script para solucionar el problema del entrypoint en n8n Cloud Run
+# Usa el entrypoint oficial de n8n y configuración correcta
+
+set -e
+
+# Colores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+NC='\033[0m'
+
+echo -e "${PURPLE}=== Solución Correcta: Usar Entrypoint Oficial de n8n ===${NC}"
+echo -e "${BLUE}Diagnóstico: Problema con entrypoint personalizado${NC}"
+echo ""
+
+# URL específica del usuario (sin slash final)
+BASE_URL="https://n8n-1059853171455.us-central1.run.app"
+
+echo -e "${GREEN}URL base del servicio: $BASE_URL${NC}"
+
+# Verificar que gcloud está configurado
+if ! command -v gcloud &> /dev/null; then
+    echo -e "${RED}Error: gcloud CLI no está instalado${NC}"
+    exit 1
+fi
+
+# Obtener proyecto actual
+PROJECT_ID=$(gcloud config get-value project)
+if [ -z "$PROJECT_ID" ]; then
+    echo -e "${RED}Error: No hay proyecto configurado en gcloud${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}Proyecto actual: $PROJECT_ID${NC}"
+
+# Verificar si existe archivo de configuración local
+if [ -f ".cloudsql-config.local" ]; then
+    echo -e "${GREEN}Archivo de configuración local encontrado${NC}"
+    source .cloudsql-config.local
+
+    # Verificar que tenemos las variables necesarias
+    if [ -z "$CLOUDSQL_INSTANCE" ] || [ -z "$DB_PASSWORD" ] || [ -z "$N8N_ENCRYPTION_KEY" ] || [ -z "$N8N_USER" ] || [ -z "$N8N_PASSWORD" ]; then
+        echo -e "${RED}Error: Faltan variables de configuración${NC}"
+        echo -e "${YELLOW}Ejecuta ./setup-cloudsql.sh primero${NC}"
+        exit 1
+    fi
+else
+    echo -e "${RED}Error: Archivo .cloudsql-config.local no encontrado${NC}"
+    echo -e "${YELLOW}Ejecuta ./setup-cloudsql.sh primero${NC}"
+    exit 1
+fi
+
+# Mostrar configuración actual
+echo -e "${BLUE}=== Configuración Actual ===${NC}"
+echo "Proyecto: $PROJECT_ID"
+echo "URL base: $BASE_URL"
+echo "Instancia Cloud SQL: $CLOUDSQL_INSTANCE"
+echo "Usuario n8n: $N8N_USER"
+
+# Mostrar cambios que se aplicarán
+echo -e "${BLUE}=== Cambios que se Aplicarán ===${NC}"
+echo "✅ Dockerfile.cloudrun simplificado (usa entrypoint oficial)"
+echo "✅ startup.sh usa /docker-entrypoint.sh n8n start"
+echo "✅ Variables de entorno completas y correctas"
+echo "✅ N8N_EDITOR_BASE_URL=$BASE_URL (sin slash)"
+echo "✅ WEBHOOK_URL=$BASE_URL/ (con slash)"
+echo "✅ Endpoints fijados a valores por defecto"
+echo "✅ Puerto 8080 configurado explícitamente"
+
+# Función para diagnóstico paso a paso
+diagnose_service() {
+    echo -e "${BLUE}=== Diagnóstico del Servicio ===${NC}"
+
+    echo -e "${YELLOW}1. Verificando endpoint de salud...${NC}"
+    if curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/healthz" | grep -q "200"; then
+        echo -e "${GREEN}✅ /healthz responde 200${NC}"
+    else
+        echo -e "${RED}❌ /healthz no responde correctamente${NC}"
+    fi
+
+    echo -e "${YELLOW}2. Verificando endpoint de readiness...${NC}"
+    if curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/healthz/readiness" | grep -q "200"; then
+        echo -e "${GREEN}✅ /healthz/readiness responde 200${NC}"
+    else
+        echo -e "${RED}❌ /healthz/readiness no responde correctamente${NC}"
+    fi
+
+    echo -e "${YELLOW}3. Verificando endpoint REST...${NC}"
+    if curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/rest/ping" | grep -q "200"; then
+        echo -e "${GREEN}✅ /rest/ping responde 200${NC}"
+    else
+        echo -e "${RED}❌ /rest/ping no responde correctamente${NC}"
+    fi
+
+    echo -e "${YELLOW}4. Verificando página principal...${NC}"
+    MAIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$BASE_URL/")
+    if [ "$MAIN_STATUS" = "200" ]; then
+        echo -e "${GREEN}✅ Página principal responde 200${NC}"
+    else
+        echo -e "${RED}❌ Página principal responde $MAIN_STATUS${NC}"
+    fi
+
+    echo ""
+    echo -e "${BLUE}=== Análisis del Diagnóstico ===${NC}"
+    if [ "$MAIN_STATUS" = "404" ]; then
+        echo -e "${YELLOW}🔍 Problema identificado: Error 404 en página principal${NC}"
+        echo -e "${YELLOW}💡 La solución del entrypoint oficial debería resolverlo${NC}"
+    elif [ "$MAIN_STATUS" = "200" ]; then
+        echo -e "${GREEN}🎉 ¡El servicio ya está funcionando correctamente!${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Estado inesperado: $MAIN_STATUS${NC}"
+    fi
+}
+
+# Ejecutar diagnóstico si el servicio está disponible
+echo ""
+read -p "¿Quieres ejecutar diagnóstico del servicio actual? (y/N): " run_diagnosis
+if [[ "$run_diagnosis" =~ ^[Yy]$ ]]; then
+    diagnose_service
+fi
+
+# Confirmar aplicación de la solución
+echo ""
+read -p "¿Aplicar la solución del entrypoint oficial? (y/N): " confirm
+if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo -e "${YELLOW}Aplicación cancelada${NC}"
+    exit 0
+fi
+
+# Actualizar el trigger de Cloud Build
+echo -e "${YELLOW}Actualizando trigger de Cloud Build...${NC}"
+
+TRIGGER_NAME="n8n-deploy-trigger"
+
+# Verificar si el trigger existe
+if gcloud builds triggers describe "$TRIGGER_NAME" --region=global 2>/dev/null; then
+    echo -e "${YELLOW}Actualizando trigger existente...${NC}"
+    gcloud builds triggers update github "$TRIGGER_NAME" \
+        --repo-name="N8N" \
+        --repo-owner="tu-usuario" \
+        --branch-pattern="^main$" \
+        --build-config="cloudbuild-secure.yaml" \
+        --substitutions="_CLOUDSQL_INSTANCE=$CLOUDSQL_INSTANCE,_DB_NAME=n8n_db,_DB_USER=n8n_user,_DB_PASSWORD=$DB_PASSWORD,_N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY,_N8N_USER=$N8N_USER,_N8N_PASSWORD=$N8N_PASSWORD,_BASE_URL=$BASE_URL" \
+        --region=global
+else
+    echo -e "${YELLOW}Creando nuevo trigger...${NC}"
+    gcloud builds triggers create github "$TRIGGER_NAME" \
+        --repo-name="N8N" \
+        --repo-owner="tu-usuario" \
+        --branch-pattern="^main$" \
+        --build-config="cloudbuild-secure.yaml" \
+        --substitutions="_CLOUDSQL_INSTANCE=$CLOUDSQL_INSTANCE,_DB_NAME=n8n_db,_DB_USER=n8n_user,_DB_PASSWORD=$DB_PASSWORD,_N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY,_N8N_USER=$N8N_USER,_N8N_PASSWORD=$N8N_PASSWORD,_BASE_URL=$BASE_URL" \
+        --region=global
+fi
+
+# Actualizar archivo de configuración local
+echo -e "${YELLOW}Actualizando archivo de configuración local...${NC}"
+{
+    echo "# Configuración de Cloud SQL y Cloud Build - $(date)"
+    echo "# IMPORTANTE: Este archivo contiene información sensible"
+    echo "# No subir a repositorio público"
+    echo ""
+    echo "PROJECT_ID=$PROJECT_ID"
+    echo "CLOUDSQL_INSTANCE=$CLOUDSQL_INSTANCE"
+    echo "INSTANCE_NAME=$INSTANCE_NAME"
+    echo "INSTANCE_REGION=$INSTANCE_REGION"
+    echo "DB_NAME=n8n_db"
+    echo "DB_USER=n8n_user"
+    echo "DB_PASSWORD=$DB_PASSWORD"
+    echo "N8N_USER=$N8N_USER"
+    echo "N8N_PASSWORD=$N8N_PASSWORD"
+    echo "N8N_ENCRYPTION_KEY=$N8N_ENCRYPTION_KEY"
+    echo "BASE_URL=$BASE_URL"
+    echo ""
+    echo "# Variables de n8n configuradas (ENTRYPOINT OFICIAL)"
+    echo "N8N_HOST=0.0.0.0"
+    echo "N8N_PORT=8080"
+    echo "N8N_PROTOCOL=https"
+    echo "N8N_DISABLE_UI=false"
+    echo "N8N_PATH=/"
+    echo "N8N_EDITOR_BASE_URL=$BASE_URL"
+    echo "WEBHOOK_URL=$BASE_URL/"
+    echo ""
+    echo "# Solución aplicada: Entrypoint oficial de n8n"
+} > .cloudsql-config.local
+
+chmod 600 .cloudsql-config.local
+
+echo -e "${GREEN}✅ Configuración actualizada${NC}"
+echo -e "${BLUE}📁 Configuración actualizada en: .cloudsql-config.local${NC}"
+
+# Mostrar próximos pasos
+echo -e "${BLUE}=== Próximos Pasos ===${NC}"
+echo "1. La configuración ha sido actualizada en el trigger"
+echo "2. Haz push de tus cambios para activar un nuevo despliegue"
+echo "3. El nuevo despliegue usará el entrypoint oficial de n8n"
+echo "4. Esto debería resolver definitivamente el error 404"
+
+# Opción para hacer deploy inmediatamente
+echo ""
+read -p "¿Quieres hacer deploy inmediatamente? (y/N): " deploy_now
+if [[ "$deploy_now" =~ ^[Yy]$ ]]; then
+    echo -e "${YELLOW}Haciendo deploy...${NC}"
+
+    # Trigger manual del build
+    gcloud builds triggers run "$TRIGGER_NAME" \
+        --branch=main \
+        --region=global
+
+    echo -e "${GREEN}✅ Deploy iniciado${NC}"
+    echo -e "${BLUE}Verifica el progreso en: https://console.cloud.google.com/cloud-build${NC}"
+    echo -e "${BLUE}Una vez completado, n8n debería estar disponible en: $BASE_URL${NC}"
+
+    # Esperar un poco y hacer diagnóstico post-deploy
+    echo ""
+    echo -e "${YELLOW}Esperando 2 minutos para que el deploy se complete...${NC}"
+    sleep 120
+
+    echo -e "${BLUE}=== Diagnóstico Post-Deploy ===${NC}"
+    diagnose_service
+
+else
+    echo -e "${YELLOW}Para hacer deploy, ejecuta:${NC}"
+    echo "git add ."
+    echo "git commit -m 'fix: usar entrypoint oficial de n8n y configuración correcta'"
+    echo "git push origin main"
+fi
+
+echo ""
+echo -e "${GREEN}=== Solución Aplicada ===${NC}"
+echo -e "${GREEN}✅ Entrypoint oficial de n8n configurado${NC}"
+echo -e "${GREEN}✅ Variables de entorno completas${NC}"
+echo -e "${GREEN}✅ Endpoints fijados a valores por defecto${NC}"
+echo -e "${GREEN}✅ Configuración robusta y estable${NC}"
+echo -e "${BLUE}🌐 URL: $BASE_URL${NC}"
+```
 
 ## File: flow.json
-````json
+
+```json
 {
   "name": "Ping HTTP",
   "active": false,
@@ -782,10 +1043,11 @@ echo "Si n8n responde, deberías poder acceder ahora"
     }
   }
 }
-````
+```
 
 ## File: LICENSE
-````
+
+```
 MIT License
 
 Copyright (c) 2024 n8n Docker Project
@@ -807,10 +1069,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-````
+```
 
 ## File: package.json
-````json
+
+```json
 {
   "name": "n8n-docker",
   "version": "1.0.0",
@@ -825,18 +1088,14 @@ SOFTWARE.
     "clean": "./clean-and-start.sh",
     "pack-context": "npm exec -y -- repomix@latest"
   },
-  "keywords": [
-    "n8n",
-    "docker",
-    "postgresql",
-    "automation"
-  ],
+  "keywords": ["n8n", "docker", "postgresql", "automation"],
   "author": "",
   "license": "MIT"
 }
-````
+```
 
 ## File: README-cloudrun.md
+
 ````markdown
 # n8n en Google Cloud Run
 
@@ -1119,6 +1378,7 @@ gcloud logs read "resource.type=cloud_run_revision AND resource.labels.service_n
 ````
 
 ## File: README-cloudsql.md
+
 ````markdown
 # n8n con Cloud SQL - Configuración Completa
 
@@ -1351,6 +1611,7 @@ Configurar alertas para:
 ````
 
 ## File: README-docker.md
+
 ````markdown
 # n8n con Docker + PostgreSQL
 
@@ -1577,6 +1838,7 @@ volumes:
 ````
 
 ## File: README-scanning-flows.md
+
 ````markdown
 # Flujos de Escaneo de Vulnerabilidades
 
@@ -1768,6 +2030,7 @@ security-scanner:
 ````
 
 ## File: README-vulnerability-scanning.md
+
 ````markdown
 # Escaneo de Vulnerabilidades en n8n
 
@@ -2026,153 +2289,9 @@ gcloud artifacts docker images describe \
 5. **Documentación**: Mantener registro de vulnerabilidades y correcciones
 ````
 
-## File: README.md
-````markdown
-# n8n con PostgreSQL - Proyecto Docker Optimizado
-
-Proyecto completo para ejecutar n8n con PostgreSQL usando Docker, optimizado para desarrollo local y despliegue en Google Cloud Run.
-
-## 🚀 Inicio Rápido
-
-### Desarrollo Local
-
-```bash
-# Construir y ejecutar con Docker Compose
-docker-compose up -d
-
-# Acceder a n8n
-# http://localhost:5679
-# Usuario: admin
-# Contraseña: tu_password
-```
-
-### Escaneo de Vulnerabilidades
-
-```bash
-# Linux/macOS
-./scan-local.sh
-
-# Windows
-.\scan-simple.ps1
-```
-
-### Despliegue en Cloud Run
-
-```bash
-# Desplegar a Google Cloud Run
-./deploy-cloudrun.sh
-```
-
-## 📁 Estructura del Proyecto
-
-### 🐳 Dockerfiles
-
-- `Dockerfile` - Imagen básica para desarrollo local
-- `Dockerfile.cloudrun` - Optimizada para Google Cloud Run
-- `Dockerfile.with-trivy` - Con herramientas de escaneo integradas
-
-### 🔧 Scripts Principales
-
-- `docker-compose.yml` - Orquestación local con PostgreSQL
-- `startup.sh` - Script de inicio para Cloud Run
-- `docker-entrypoint.sh` - Entrypoint personalizado
-- `deploy-cloudrun.sh` - Despliegue automatizado a Cloud Run
-
-### 🔒 Seguridad
-
-- `scan-simple.ps1` - Escaneo de vulnerabilidades (Windows)
-- `scan-local.sh` - Escaneo de vulnerabilidades (Linux/macOS)
-- `security-audit.sh` - Auditoría de seguridad completa
-- `verify-dockerfiles.sh` - Verificación de Dockerfiles
-
-### 📚 Documentación
-
-- `README-docker.md` - Guía completa de Docker
-- `README-cloudrun.md` - Despliegue en Google Cloud Run
-- `README-vulnerability-scanning.md` - Escaneo de vulnerabilidades
-- `README-scanning-flows.md` - Flujos de escaneo
-- `SECURITY.md` - Mejores prácticas de seguridad
-
-### 🏗️ CI/CD
-
-- `cloudbuild-secure.yaml` - Pipeline seguro para Cloud Build
-- `docker-compose-with-scanning.yml` - Entorno con escaneo integrado
-
-## 🛠️ Comandos Útiles
-
-### Construcción de Imágenes
-
-```bash
-# Imagen básica
-docker build -f Dockerfile -t n8n:latest .
-
-# Imagen para Cloud Run
-docker build -f Dockerfile.cloudrun -t n8n-cloudrun:latest .
-
-# Imagen con Trivy
-docker build -f Dockerfile.with-trivy -t n8n-trivy:latest .
-```
-
-### Verificación
-
-```bash
-# Verificar Dockerfiles
-./verify-dockerfiles.sh
-
-# Probar construcción
-./test-simple.sh
-```
-
-### Escaneo
-
-```bash
-# Linux/macOS
-./scan-local.sh
-
-# Windows
-.\scan-simple.ps1
-```
-
-## 🔐 Variables de Entorno
-
-Las variables están configuradas en `docker-compose.yml`. Para producción, crea un archivo `.env`:
-
-```bash
-# Base de datos
-DB_TYPE=postgresdb
-DB_POSTGRESDB_HOST=postgres
-DB_POSTGRESDB_PORT=5432
-DB_POSTGRESDB_DATABASE=n8n_db
-DB_POSTGRESDB_USER=n8n_user
-DB_POSTGRESDB_PASSWORD=tu_contraseña_segura
-
-# n8n (OBLIGATORIO cambiar en producción)
-N8N_ENCRYPTION_KEY=tu_clave_de_encriptacion_super_larga_y_unica
-N8N_BASIC_AUTH_ACTIVE=true
-N8N_BASIC_AUTH_USER=admin
-N8N_BASIC_AUTH_PASSWORD=tu_contraseña_admin_segura
-```
-
-## 🎯 Características
-
-- ✅ **Multi-stage builds** para imágenes optimizadas
-- ✅ **Usuario no-root** para seguridad
-- ✅ **Escaneo de vulnerabilidades** integrado
-- ✅ **CI/CD seguro** con Cloud Build
-- ✅ **PostgreSQL** como base de datos
-- ✅ **Cloud Run** optimizado
-- ✅ **Documentación completa**
-
-## 📖 Más Información
-
-- [Guía de Docker](README-docker.md)
-- [Despliegue en Cloud Run](README-cloudrun.md)
-- [Escaneo de Vulnerabilidades](README-vulnerability-scanning.md)
-- [Mejores Prácticas de Seguridad](SECURITY.md)
-````
-
 ## File: repomix.config.json
-````json
+
+```json
 {
   "$schema": "https://repomix.com/schemas/latest/schema.json",
   "input": {
@@ -2211,10 +2330,11 @@ N8N_BASIC_AUTH_PASSWORD=tu_contraseña_admin_segura
     "encoding": "o200k_base"
   }
 }
-````
+```
 
 ## File: scan-internal.sh
-````bash
+
+```bash
 #!/bin/bash
 # Script para escaneo interno de vulnerabilidades dentro del contenedor
 
@@ -2242,75 +2362,75 @@ mkdir -p "$SCAN_DIR"
 # Función para escanear sistema de archivos
 scan_filesystem() {
     echo -e "${YELLOW}Escaneando sistema de archivos...${NC}"
-    
+
     # Escanear directorio de n8n
     trivy fs --severity HIGH,CRITICAL --exit-code 0 --format json --output "$SCAN_DIR/fs-critical.json" /home/node/.n8n
-    
+
     # Escanear configuración
     trivy config --severity HIGH,CRITICAL --exit-code 0 --format json --output "$SCAN_DIR/config-critical.json" /home/node
-    
+
     echo -e "${GREEN}✅ Escaneo de sistema de archivos completado${NC}"
 }
 
 # Función para escanear paquetes instalados
 scan_packages() {
     echo -e "${YELLOW}Escaneando paquetes instalados...${NC}"
-    
+
     # Escanear paquetes del sistema
     trivy rootfs --severity HIGH,CRITICAL --exit-code 0 --format json --output "$SCAN_DIR/packages-critical.json" /
-    
+
     echo -e "${GREEN}✅ Escaneo de paquetes completado${NC}"
 }
 
 # Función para generar reporte
 generate_report() {
     echo -e "${BLUE}Generando reporte de seguridad...${NC}"
-    
+
     {
         echo "=== Reporte de Seguridad Interno - $(date) ==="
         echo "Contenedor: $(hostname)"
         echo "Usuario: $(whoami)"
         echo "Directorio: $SCAN_DIR"
         echo ""
-        
+
         # Verificar vulnerabilidades críticas en sistema de archivos
         if [ -f "$SCAN_DIR/fs-critical.json" ]; then
             VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' "$SCAN_DIR/fs-critical.json" 2>/dev/null | awk '{sum+=$1} END {print sum+0}')
             echo "Vulnerabilidades en sistema de archivos: $VULN_COUNT"
         fi
-        
+
         # Verificar vulnerabilidades críticas en configuración
         if [ -f "$SCAN_DIR/config-critical.json" ]; then
             VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' "$SCAN_DIR/config-critical.json" 2>/dev/null | awk '{sum+=$1} END {print sum+0}')
             echo "Vulnerabilidades en configuración: $VULN_COUNT"
         fi
-        
+
         # Verificar vulnerabilidades críticas en paquetes
         if [ -f "$SCAN_DIR/packages-critical.json" ]; then
             VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' "$SCAN_DIR/packages-critical.json" 2>/dev/null | awk '{sum+=$1} END {print sum+0}')
             echo "Vulnerabilidades en paquetes: $VULN_COUNT"
         fi
-        
+
         echo ""
         echo "=== Información del Sistema ==="
         echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
         echo "Node.js: $(node --version)"
         echo "npm: $(npm --version)"
         echo "n8n: $(n8n --version 2>/dev/null || echo 'No disponible')"
-        
+
     } > "$SCAN_DIR/internal-security-report.txt"
-    
+
     echo -e "${GREEN}✅ Reporte guardado en: $SCAN_DIR/internal-security-report.txt${NC}"
 }
 
 # Función para mostrar resultados
 show_results() {
     echo -e "${BLUE}=== Resultados del Escaneo ===${NC}"
-    
+
     if [ -f "$SCAN_DIR/internal-security-report.txt" ]; then
         cat "$SCAN_DIR/internal-security-report.txt"
     fi
-    
+
     echo ""
     echo -e "${YELLOW}Archivos de resultados:${NC}"
     ls -la "$SCAN_DIR/"
@@ -2325,10 +2445,11 @@ show_results
 echo -e "${GREEN}=== Escaneo Interno Completado ===${NC}"
 echo -e "📁 Resultados en: $SCAN_DIR"
 echo -e "📄 Reporte: $SCAN_DIR/internal-security-report.txt"
-````
+```
 
 ## File: scan-local.sh
-````bash
+
+```bash
 #!/bin/bash
 # Script para escanear vulnerabilidades localmente antes del despliegue
 
@@ -2382,7 +2503,7 @@ if trivy image --severity HIGH,CRITICAL --exit-code 1 --format json --output sca
 else
     echo -e "${RED}❌ Se encontraron vulnerabilidades críticas/altas${NC}"
     echo -e "${YELLOW}Detalles guardados en: scan-results/trivy-critical.json${NC}"
-    
+
     # Mostrar resumen
     if command -v jq &> /dev/null; then
         echo -e "${YELLOW}Resumen de vulnerabilidades:${NC}"
@@ -2408,7 +2529,7 @@ echo -e "${BLUE}=== Generando Reporte Completo ===${NC}"
     echo "=== Reporte de Vulnerabilidades - $(date) ==="
     echo "Imagen: $IMAGE_NAME"
     echo ""
-    
+
     echo "=== Vulnerabilidades Críticas/Altas ==="
     if [ -f "scan-results/trivy-critical.json" ]; then
         if command -v jq &> /dev/null; then
@@ -2419,25 +2540,25 @@ echo -e "${BLUE}=== Generando Reporte Completo ===${NC}"
     else
         echo "  ✅ No se encontraron vulnerabilidades críticas/altas"
     fi
-    
+
     echo ""
     echo "=== Vulnerabilidades Medias ==="
     if [ -f "scan-results/trivy-medium.txt" ]; then
         cat scan-results/trivy-medium.txt
     fi
-    
+
     echo ""
     echo "=== Vulnerabilidades Bajas ==="
     if [ -f "scan-results/trivy-low.txt" ]; then
         cat scan-results/trivy-low.txt
     fi
-    
+
     echo ""
     echo "=== Configuración de Seguridad ==="
     if [ -f "scan-results/trivy-config.txt" ]; then
         cat scan-results/trivy-config.txt
     fi
-    
+
 } > scan-results/security-report.txt
 
 echo -e "${GREEN}✅ Reporte completo guardado en: scan-results/security-report.txt${NC}"
@@ -2456,10 +2577,11 @@ if [ -f "scan-results/trivy-critical.json" ]; then
 else
     echo -e "${GREEN}✅ Imagen lista para despliegue${NC}"
 fi
-````
+```
 
 ## File: scan-simple.ps1
-````powershell
+
+```powershell
 # Script simplificado de escaneo de vulnerabilidades
 # Usa Docker para evitar problemas de instalación local
 
@@ -2498,22 +2620,22 @@ function Invoke-TrivyDocker {
         [string]$OutputFile,
         [string]$Format = "table"
     )
-    
+
     Write-Host "Escaneando vulnerabilidades $Severity..." -ForegroundColor Yellow
-    
+
     $dockerArgs = @(
         "run", "--rm",
         "-v", "${PWD}:/workspace",
         "-w", "/workspace",
         "aquasec/trivy:latest"
     )
-    
+
     if ($Format -eq "json") {
         $dockerArgs += @("image", "--severity", $Severity, "--exit-code", "0", "--format", $Format, "--output", $OutputFile, $ImageName)
     } else {
         $dockerArgs += @("image", "--severity", $Severity, "--exit-code", "0", "--format", $Format, "--output", $OutputFile, $ImageName)
     }
-    
+
     docker $dockerArgs
 }
 
@@ -2597,10 +2719,11 @@ Write-Host "Revisa el reporte antes de desplegar" -ForegroundColor Yellow
 }
 
 Write-Host "`nConsejo: Este script usa Docker, no requiere instalar Trivy localmente" -ForegroundColor Cyan
-````
+```
 
 ## File: security-audit.sh
-````bash
+
+```bash
 #!/bin/bash
 # Script de auditoría de seguridad completa
 # Combina escaneo externo e interno para análisis exhaustivo
@@ -2647,14 +2770,14 @@ show_success "Directorio de auditoría creado: $AUDIT_DIR"
 # ===== FASE 1: ESCANEO EXTERNO =====
 if [ "$EXTERNAL_SCAN" = true ]; then
     echo -e "${BLUE}=== FASE 1: Escaneo Externo ===${NC}"
-    
+
     show_progress "Verificando que Docker está corriendo..."
     if ! docker info > /dev/null 2>&1; then
         show_error "Docker no está corriendo"
         exit 1
     fi
     show_success "Docker está corriendo"
-    
+
     show_progress "Verificando imagen..."
     if ! docker images | grep -q "$IMAGE_NAME"; then
         show_progress "Construyendo imagen..."
@@ -2663,9 +2786,9 @@ if [ "$EXTERNAL_SCAN" = true ]; then
     else
         show_success "Imagen encontrada"
     fi
-    
+
     show_progress "Ejecutando escaneo externo con Trivy..."
-    
+
     # Escaneo crítico/alto
     if trivy image --severity HIGH,CRITICAL --exit-code 0 --format json --output "$AUDIT_DIR/external-critical.json" "$IMAGE_NAME"; then
         show_success "No se encontraron vulnerabilidades críticas/altas"
@@ -2674,37 +2797,37 @@ if [ "$EXTERNAL_SCAN" = true ]; then
         VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' "$AUDIT_DIR/external-critical.json" 2>/dev/null | awk '{sum+=$1} END {print sum+0}')
         echo -e "${RED}Vulnerabilidades encontradas: $VULN_COUNT${NC}"
     fi
-    
+
     # Escaneo medio/bajo (solo reporte)
     trivy image --severity MEDIUM,LOW --exit-code 0 --format table --output "$AUDIT_DIR/external-all.txt" "$IMAGE_NAME"
-    
+
     # Escaneo de configuración
     trivy config --severity HIGH,CRITICAL --exit-code 0 --format table --output "$AUDIT_DIR/external-config.txt" .
-    
+
     show_success "Escaneo externo completado"
 fi
 
 # ===== FASE 2: ESCANEO INTERNO =====
 if [ "$INTERNAL_SCAN" = true ]; then
     echo -e "${BLUE}=== FASE 2: Escaneo Interno ===${NC}"
-    
+
     show_progress "Levantando entorno con capacidades de escaneo..."
-    
+
     # Detener contenedores existentes
     docker-compose -f docker-compose-with-scanning.yml down 2>/dev/null || true
-    
+
     # Levantar entorno
     docker-compose -f docker-compose-with-scanning.yml up -d n8n
-    
+
     # Esperar a que n8n esté listo
     show_progress "Esperando a que n8n esté listo..."
     sleep 10
-    
+
     # Ejecutar escaneo interno
     show_progress "Ejecutando escaneo interno..."
     if docker exec n8n-with-scanning /usr/local/bin/scan-internal.sh; then
         show_success "Escaneo interno completado"
-        
+
         # Copiar resultados
         if [ -d "security-scans" ]; then
             cp -r security-scans/* "$AUDIT_DIR/"
@@ -2713,7 +2836,7 @@ if [ "$INTERNAL_SCAN" = true ]; then
     else
         show_error "Error en escaneo interno"
     fi
-    
+
     # Limpiar
     show_progress "Limpiando entorno..."
     docker-compose -f docker-compose-with-scanning.yml down
@@ -2732,9 +2855,9 @@ show_progress "Generando reporte de auditoría..."
     echo "Imagen: $IMAGE_NAME"
     echo "Directorio: $AUDIT_DIR"
     echo ""
-    
+
     echo "=== RESUMEN EJECUTIVO ==="
-    
+
     # Contar vulnerabilidades externas
     if [ -f "$AUDIT_DIR/external-critical.json" ]; then
         EXT_VULN_COUNT=$(jq '.Results[].Vulnerabilities | length' "$AUDIT_DIR/external-critical.json" 2>/dev/null | awk '{sum+=$1} END {print sum+0}')
@@ -2742,17 +2865,17 @@ show_progress "Generando reporte de auditoría..."
     else
         echo "Vulnerabilidades críticas/altas (externas): 0"
     fi
-    
+
     # Contar vulnerabilidades internas
     if [ -f "$AUDIT_DIR/internal-security-report.txt" ]; then
         echo "Escaneo interno: Completado"
     else
         echo "Escaneo interno: No disponible"
     fi
-    
+
     echo ""
     echo "=== RECOMENDACIONES ==="
-    
+
     if [ "$EXT_VULN_COUNT" -gt 0 ]; then
         echo "❌ CORREGIR VULNERABILIDADES CRÍTICAS ANTES DEL DESPLIEGUE"
         echo "   - Revisar: $AUDIT_DIR/external-critical.json"
@@ -2760,14 +2883,14 @@ show_progress "Generando reporte de auditoría..."
     else
         echo "✅ No se encontraron vulnerabilidades críticas/altas"
     fi
-    
+
     echo ""
     echo "=== ARCHIVOS DE RESULTADOS ==="
     echo "Reporte completo: $AUDIT_DIR/audit-report.txt"
     echo "Escaneo externo: $AUDIT_DIR/external-all.txt"
     echo "Configuración: $AUDIT_DIR/external-config.txt"
     echo "Escaneo interno: $AUDIT_DIR/internal-security-report.txt"
-    
+
 } > "$AUDIT_DIR/audit-report.txt"
 
 show_success "Reporte generado: $AUDIT_DIR/audit-report.txt"
@@ -2786,9 +2909,10 @@ else
 fi
 
 echo -e "${BLUE}📁 Resultados completos en: $AUDIT_DIR${NC}"
-````
+```
 
 ## File: SECURITY.md
+
 ````markdown
 # Seguridad en n8n Docker
 
@@ -2917,7 +3041,8 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 ````
 
 ## File: test-permissions-fix.sh
-````bash
+
+```bash
 #!/bin/bash
 # Script para probar la corrección de permisos en Dockerfiles
 
@@ -2934,7 +3059,7 @@ NC='\033[0m' # No Color
 # Función para verificar que no hay USER node en los Dockerfiles
 check_dockerfiles() {
     echo -e "${YELLOW}Verificando Dockerfiles...${NC}"
-    
+
     # Verificar Dockerfile principal
     if grep -q "^USER node" Dockerfile; then
         echo -e "${RED}❌ ERROR: Dockerfile aún contiene 'USER node'${NC}"
@@ -2942,7 +3067,7 @@ check_dockerfiles() {
     else
         echo -e "${GREEN}✅ Dockerfile: OK - No contiene 'USER node'${NC}"
     fi
-    
+
     # Verificar Dockerfile.cloudrun
     if grep -q "^USER node" Dockerfile.cloudrun; then
         echo -e "${RED}❌ ERROR: Dockerfile.cloudrun aún contiene 'USER node'${NC}"
@@ -2950,7 +3075,7 @@ check_dockerfiles() {
     else
         echo -e "${GREEN}✅ Dockerfile.cloudrun: OK - No contiene 'USER node'${NC}"
     fi
-    
+
     # Verificar Dockerfile.with-trivy
     if grep -q "^USER node" Dockerfile.with-trivy; then
         echo -e "${RED}❌ ERROR: Dockerfile.with-trivy aún contiene 'USER node'${NC}"
@@ -2958,14 +3083,14 @@ check_dockerfiles() {
     else
         echo -e "${GREEN}✅ Dockerfile.with-trivy: OK - No contiene 'USER node'${NC}"
     fi
-    
+
     return 0
 }
 
 # Función para verificar que los scripts de entrada están correctos
 check_entrypoint_scripts() {
     echo -e "${YELLOW}Verificando scripts de entrada...${NC}"
-    
+
     # Verificar que docker-entrypoint.sh usa gosu
     if grep -q "gosu node" docker-entrypoint.sh; then
         echo -e "${GREEN}✅ docker-entrypoint.sh: OK - Usa gosu para bajar privilegios${NC}"
@@ -2973,7 +3098,7 @@ check_entrypoint_scripts() {
         echo -e "${RED}❌ ERROR: docker-entrypoint.sh no usa gosu${NC}"
         return 1
     fi
-    
+
     # Verificar que startup.sh usa gosu
     if grep -q "gosu node" startup.sh; then
         echo -e "${GREEN}✅ startup.sh: OK - Usa gosu para bajar privilegios${NC}"
@@ -2981,17 +3106,17 @@ check_entrypoint_scripts() {
         echo -e "${RED}❌ ERROR: startup.sh no usa gosu${NC}"
         return 1
     fi
-    
+
     return 0
 }
 
 # Función para probar build local
 test_local_build() {
     echo -e "${YELLOW}Probando build local...${NC}"
-    
+
     # Limpiar imágenes anteriores
     docker rmi n8n-test-permissions 2>/dev/null || true
-    
+
     # Build de prueba
     if docker build -t n8n-test-permissions .; then
         echo -e "${GREEN}✅ Build local: OK${NC}"
@@ -3005,10 +3130,10 @@ test_local_build() {
 # Función para probar que el entrypoint se ejecuta como root
 test_entrypoint_permissions() {
     echo -e "${YELLOW}Probando permisos del entrypoint...${NC}"
-    
+
     # Crear contenedor temporal para probar
     container_id=$(docker create n8n-test-permissions)
-    
+
     # Verificar que el entrypoint se ejecuta como root durante la inicialización
     # El script debe poder crear directorios y hacer chown exitosamente
     if docker run --rm -e DB_TYPE=sqlite n8n-test-permissions sh -c "echo 'Test completado'" 2>&1 | grep -q "chown.*Operation not permitted"; then
@@ -3018,32 +3143,32 @@ test_entrypoint_permissions() {
         echo -e "${GREEN}✅ Entrypoint: OK - Tiene permisos de root para operaciones privilegiadas${NC}"
         result=0
     fi
-    
+
     # Limpiar
     docker rm $container_id 2>/dev/null || true
-    
+
     return $result
 }
 
 # Ejecutar todas las verificaciones
 main() {
     local exit_code=0
-    
+
     check_dockerfiles || exit_code=1
     check_entrypoint_scripts || exit_code=1
-    
+
     if [ $exit_code -eq 0 ]; then
         echo -e "${YELLOW}¿Quieres probar el build local? (y/n)${NC}"
         read -r response
         if [[ "$response" =~ ^[Yy]$ ]]; then
             test_local_build || exit_code=1
-            
+
             if [ $exit_code -eq 0 ]; then
                 test_entrypoint_permissions || exit_code=1
             fi
         fi
     fi
-    
+
     echo -e "\n${YELLOW}=== Resumen ===${NC}"
     if [ $exit_code -eq 0 ]; then
         echo -e "${GREEN}✅ Todas las verificaciones pasaron${NC}"
@@ -3052,16 +3177,17 @@ main() {
         echo -e "${RED}❌ Algunas verificaciones fallaron${NC}"
         echo -e "${RED}Revisa los errores arriba${NC}"
     fi
-    
+
     return $exit_code
 }
 
 # Ejecutar script
 main "$@"
-````
+```
 
 ## File: test-simple-n8n.sh
-````bash
+
+```bash
 #!/bin/bash
 set -e
 
@@ -3102,10 +3228,11 @@ echo "🌐 n8n: http://localhost:5680"
 echo "🗄️  PostgreSQL: localhost:5433"
 echo ""
 echo "Si n8n no responde, revisa los logs arriba"
-````
+```
 
 ## File: test-simple.sh
-````bash
+
+```bash
 #!/bin/bash
 set -e
 
@@ -3136,10 +3263,11 @@ else
     echo "❌ Error en la construcción"
     exit 1
 fi
-````
+```
 
 ## File: verify-dockerfiles.sh
-````bash
+
+```bash
 #!/bin/bash
 # Script para verificar que los Dockerfiles están correctamente configurados
 
@@ -3158,14 +3286,14 @@ echo -e "${BLUE}=== Verificación de Dockerfiles ===${NC}"
 check_dockerfile() {
     local file=$1
     local name=$2
-    
+
     echo -e "${YELLOW}Verificando $name...${NC}"
-    
+
     if [ ! -f "$file" ]; then
         echo -e "${RED}❌ Archivo $file no encontrado${NC}"
         return 1
     fi
-    
+
     # Verificar que usa Alpine
     if grep -q "FROM.*alpine" "$file"; then
         echo -e "${GREEN}✅ Usa imagen Alpine${NC}"
@@ -3173,7 +3301,7 @@ check_dockerfile() {
         echo -e "${RED}❌ No usa imagen Alpine${NC}"
         return 1
     fi
-    
+
     # Verificar que NO usa apt-get (Debian/Ubuntu)
     if grep -q "apt-get" "$file"; then
         echo -e "${RED}❌ Usa apt-get (Debian/Ubuntu) en imagen Alpine${NC}"
@@ -3181,14 +3309,14 @@ check_dockerfile() {
     else
         echo -e "${GREEN}✅ No usa apt-get${NC}"
     fi
-    
+
     # Verificar que usa apk (Alpine)
     if grep -q "apk add" "$file"; then
         echo -e "${GREEN}✅ Usa apk (Alpine)${NC}"
     else
         echo -e "${YELLOW}⚠️  No usa apk add${NC}"
     fi
-    
+
     # Verificar instalación de Trivy
     if grep -q "trivy" "$file"; then
         if grep -q "wget.*trivy.*tar.gz" "$file"; then
@@ -3200,7 +3328,7 @@ check_dockerfile() {
     else
         echo -e "${YELLOW}⚠️  No incluye Trivy${NC}"
     fi
-    
+
     echo -e "${GREEN}✅ $name verificado correctamente${NC}"
     return 0
 }
@@ -3267,78 +3395,165 @@ for script in "${required_scripts[@]}"; do
 done
 
 echo -e "${GREEN}=== Verificación completada ===${NC}"
-````
+```
 
-## File: startup.sh
-````bash
-#!/bin/sh
-# Script de inicio para Cloud Run - Maneja puerto dinámico
+## File: README.md
 
-set -e
+````markdown
+# n8n con PostgreSQL - Proyecto Docker Optimizado
 
-echo "=== Iniciando n8n para Cloud Run ==="
+Proyecto completo para ejecutar n8n con PostgreSQL usando Docker, optimizado para desarrollo local y despliegue en Google Cloud Run.
 
-# Manejar puerto dinámico de Cloud Run
-if [ -n "$PORT" ]; then
-    echo "Puerto Cloud Run detectado: $PORT"
-    export N8N_PORT=$PORT
-    echo "Configurando n8n para escuchar en puerto: $N8N_PORT"
-else
-    echo "Puerto Cloud Run no detectado, usando puerto por defecto: ${N8N_PORT:-5678}"
-    export N8N_PORT=${N8N_PORT:-5678}
-fi
+## 🚀 Inicio Rápido
 
-# Configurar host para Cloud Run
-export N8N_HOST=${N8N_HOST:-0.0.0.0}
-export N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+### Desarrollo Local
 
-# Validar variables de entorno críticas
-if [ -z "$DB_TYPE" ]; then
-    echo "Error: DB_TYPE no está definido"
-    exit 1
-fi
+```bash
+# Construir y ejecutar con Docker Compose
+docker-compose up -d
 
-if [ "$DB_TYPE" = "postgresdb" ]; then
-    required_vars="DB_POSTGRESDB_HOST DB_POSTGRESDB_DATABASE DB_POSTGRESDB_USER DB_POSTGRESDB_PASSWORD"
-    for var in $required_vars; do
-        if [ -z "$(eval echo \$$var)" ]; then
-            echo "Error: $var no está definido para PostgreSQL"
-            exit 1
-        fi
-    done
-fi
+# Acceder a n8n
+# http://localhost:5679
+# Usuario: admin
+# Contraseña: tu_password
+```
 
-# Crear directorios necesarios
-mkdir -p /home/node/.n8n/logs
-mkdir -p /home/node/.n8n/data
-chown -R node:node /home/node/.n8n
+### Escaneo de Vulnerabilidades
 
-# Mostrar configuración final
-echo "=== Configuración final ==="
-echo "Host: $N8N_HOST"
-echo "Puerto: $N8N_PORT"
-echo "Protocolo: $N8N_PROTOCOL"
-echo "Base de datos: $DB_TYPE"
-if [ "$DB_TYPE" = "postgresdb" ]; then
-    echo "PostgreSQL Host: $DB_POSTGRESDB_HOST"
-    echo "PostgreSQL Database: $DB_POSTGRESDB_DATABASE"
-    echo "PostgreSQL User: $DB_POSTGRESDB_USER"
-fi
-echo "=========================="
+```bash
+# Linux/macOS
+./scan-local.sh
 
-# Cambiar al usuario node y ejecutar n8n
-echo "Iniciando n8n con logs detallados..."
-# La siguiente línea ejecutará n8n. Si falla, el script continuará y mostrará un error.
-gosu node n8n start || {
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  echo "!! EL PROCESO 'n8n start' HA FALLADO CON UN CÓDIGO DE ERROR !!"
-  echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-  exit 1
-}
+# Windows
+.\scan-simple.ps1
+```
+
+### Despliegue en Cloud Run
+
+```bash
+# 1. Configurar Cloud SQL y variables de entorno (OBLIGATORIO)
+./setup-cloudsql.sh
+
+# 2. Solucionar problema de entrypoint con configuración oficial
+./fix-entrypoint-issue.sh
+
+# 3. Desplegar (automático con git push)
+git add .
+git commit -m "fix: usar entrypoint oficial de n8n y configuración correcta"
+git push origin main
+```
+
+## 📁 Estructura del Proyecto
+
+### 🐳 Dockerfiles
+
+- `Dockerfile` - Imagen básica para desarrollo local
+- `Dockerfile.cloudrun` - Optimizada para Google Cloud Run
+- `Dockerfile.with-trivy` - Con herramientas de escaneo integradas
+
+### 🔧 Scripts Principales
+
+- `docker-compose.yml` - Orquestación local con PostgreSQL
+- `startup.sh` - Script de inicio para Cloud Run
+- `docker-entrypoint.sh` - Entrypoint personalizado
+- `deploy-cloudrun.sh` - Despliegue automatizado a Cloud Run
+
+### 🔒 Seguridad
+
+- `scan-simple.ps1` - Escaneo de vulnerabilidades (Windows)
+- `scan-local.sh` - Escaneo de vulnerabilidades (Linux/macOS)
+- `security-audit.sh` - Auditoría de seguridad completa
+- `verify-dockerfiles.sh` - Verificación de Dockerfiles
+
+### 📚 Documentación
+
+- `README-docker.md` - Guía completa de Docker
+- `README-cloudrun.md` - Despliegue en Google Cloud Run
+- `README-vulnerability-scanning.md` - Escaneo de vulnerabilidades
+- `README-scanning-flows.md` - Flujos de escaneo
+- `SECURITY.md` - Mejores prácticas de seguridad
+
+### 🏗️ CI/CD
+
+- `cloudbuild-secure.yaml` - Pipeline seguro para Cloud Build
+- `docker-compose-with-scanning.yml` - Entorno con escaneo integrado
+
+## 🛠️ Comandos Útiles
+
+### Construcción de Imágenes
+
+```bash
+# Imagen básica
+docker build -f Dockerfile -t n8n:latest .
+
+# Imagen para Cloud Run
+docker build -f Dockerfile.cloudrun -t n8n-cloudrun:latest .
+
+# Imagen con Trivy
+docker build -f Dockerfile.with-trivy -t n8n-trivy:latest .
+```
+
+### Verificación
+
+```bash
+# Verificar Dockerfiles
+./verify-dockerfiles.sh
+
+# Probar construcción
+./test-simple.sh
+```
+
+### Escaneo
+
+```bash
+# Linux/macOS
+./scan-local.sh
+
+# Windows
+.\scan-simple.ps1
+```
+
+## 🔐 Variables de Entorno
+
+Las variables están configuradas en `docker-compose.yml`. Para producción, crea un archivo `.env`:
+
+```bash
+# Base de datos
+DB_TYPE=postgresdb
+DB_POSTGRESDB_HOST=postgres
+DB_POSTGRESDB_PORT=5432
+DB_POSTGRESDB_DATABASE=n8n_db
+DB_POSTGRESDB_USER=n8n_user
+DB_POSTGRESDB_PASSWORD=tu_contraseña_segura
+
+# n8n (OBLIGATORIO cambiar en producción)
+N8N_ENCRYPTION_KEY=tu_clave_de_encriptacion_super_larga_y_unica
+N8N_BASIC_AUTH_ACTIVE=true
+N8N_BASIC_AUTH_USER=admin
+N8N_BASIC_AUTH_PASSWORD=tu_contraseña_admin_segura
+```
+
+## 🎯 Características
+
+- ✅ **Multi-stage builds** para imágenes optimizadas
+- ✅ **Usuario no-root** para seguridad
+- ✅ **Escaneo de vulnerabilidades** integrado
+- ✅ **CI/CD seguro** con Cloud Build
+- ✅ **PostgreSQL** como base de datos
+- ✅ **Cloud Run** optimizado
+- ✅ **Documentación completa**
+
+## 📖 Más Información
+
+- [Guía de Docker](README-docker.md)
+- [Despliegue en Cloud Run](README-cloudrun.md)
+- [Escaneo de Vulnerabilidades](README-vulnerability-scanning.md)
+- [Mejores Prácticas de Seguridad](SECURITY.md)
 ````
 
 ## File: Dockerfile
-````dockerfile
+
+```dockerfile
 # Dockerfile para n8n - Optimizado para producción
 # Multi-stage build para reducir tamaño final
 
@@ -3395,10 +3610,11 @@ EXPOSE 5678
 # Usar script de entrada personalizado
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["n8n", "start"]
-````
+```
 
 ## File: Dockerfile.with-trivy
-````
+
+```
 # Dockerfile para n8n con Trivy integrado
 # Permite escaneos de seguridad internos
 
@@ -3460,72 +3676,50 @@ EXPOSE 8080
 
 # Usar script de inicio para Cloud Run
 ENTRYPOINT ["/startup.sh"]
-````
+```
+
+## File: startup.sh
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Script de inicio para Cloud Run que usa el entrypoint oficial
+echo "=== Iniciando n8n para Cloud Run ==="
+
+# Manejar puerto dinámico de Cloud Run
+export N8N_PORT="${PORT:-8080}"
+echo "Configurando n8n para escuchar en puerto: $N8N_PORT"
+
+# Configurar host para Cloud Run
+export N8N_HOST="${N8N_HOST:-0.0.0.0}"
+
+# Mostrar configuración
+echo "=== Configuración final ==="
+echo "Host: $N8N_HOST"
+echo "Puerto: $N8N_PORT"
+echo "=========================="
+
+# Usar el entrypoint oficial de n8n
+exec /docker-entrypoint.sh n8n start
+```
 
 ## File: Dockerfile.cloudrun
-````
+
+```
 # Dockerfile para n8n en Google Cloud Run
-# Optimizado para serverless con puerto dinámico
+# Mínimo y estable - usa el entrypoint oficial
 
-# Etapa 1: Builder (para dependencias adicionales si las necesitas)
-FROM node:22-alpine AS builder
-WORKDIR /app
+FROM n8nio/n8n:1.106.3
 
-# Instalar dependencias del sistema
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    git
-
-# Etapa 2: Imagen final basada en n8n oficial
-FROM n8nio/n8n:latest
-
-# Cambiar al directorio de trabajo
-WORKDIR /home/node
-
-# Instalar herramientas adicionales para Cloud Run
-USER root
-RUN apk add --no-cache \
-    curl \
-    wget \
-    postgresql-client \
-    jq \
-    gosu
-
-# Instalar Trivy para escaneos internos (método robusto)
-USER root
-RUN apk add --no-cache bash \
-    && ARCH=$(uname -m) \
-    && if [ "$ARCH" = "x86_64" ]; then ARCH="64bit"; fi \
-    && wget -qO- "https://github.com/aquasecurity/trivy/releases/download/v0.54.0/trivy_0.54.0_Linux-${ARCH}.tar.gz" | \
-    tar -xz -C /usr/local/bin trivy \
-    && chmod +x /usr/local/bin/trivy
-
-# Copiar script de inicio para Cloud Run (como root)
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
-
-# Crear directorio para logs (está bien hacerlo como root, el startup.sh lo arregla)
-RUN mkdir -p /home/node/.n8n/logs
-
-# ---> ELIMINADA LA LÍNEA "USER node" - El startup.sh manejará los privilegios <---
-
-# Variables de entorno por defecto para Cloud Run
-ENV NODE_ENV=production
-ENV N8N_HOST=0.0.0.0
-ENV N8N_PROTOCOL=http
-# NO incluir WEBHOOK_URL aquí - debe ser variable de entorno en runtime
-
-# Exponer puerto (Cloud Run lo manejará dinámicamente)
+# No cambiar USER ni ENTRYPOINT
+# No establecer N8N_PROTOCOL aquí; hacerlo en runtime
 EXPOSE 8080
-
-# Usar script de inicio para Cloud Run
-ENTRYPOINT ["/startup.sh"]
-````
+```
 
 ## File: cloudbuild-secure.yaml
-````yaml
+
+```yaml
 steps:
   # Construir la imagen Docker
   - name: 'gcr.io/cloud-builders/docker'
@@ -3630,8 +3824,34 @@ steps:
       - '--concurrency'
       - '80'
       - '--add-cloudsql-instances=${_CLOUDSQL_INSTANCE}'
+      - '--port'
+      - '8080'
       - '--set-env-vars'
-      - 'DB_TYPE=postgresdb,DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},DB_POSTGRESDB_DATABASE=${_DB_NAME},DB_POSTGRESDB_USER=${_DB_USER},DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},N8N_BASIC_AUTH_ACTIVE=true,N8N_BASIC_AUTH_USER=${_N8N_USER},N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},NODE_ENV=production,N8N_DISABLE_UI=false,N8N_PATH=/,N8N_PROTOCOL=https,WEBHOOK_URL=${_WEBHOOK_URL},N8N_EDITOR_BASE_URL=${_WEBHOOK_URL}'
+      - >
+        DB_TYPE=postgresdb,
+        DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},
+        DB_POSTGRESDB_PORT=5432,
+        DB_POSTGRESDB_DATABASE=${_DB_NAME},
+        DB_POSTGRESDB_USER=${_DB_USER},
+        DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},
+        N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},
+        N8N_BASIC_AUTH_ACTIVE=true,
+        N8N_BASIC_AUTH_USER=${_N8N_USER},
+        N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},
+        NODE_ENV=production,
+        N8N_HOST=0.0.0.0,
+        N8N_PORT=8080,
+        N8N_PROTOCOL=https,
+        N8N_DISABLE_UI=false,
+        N8N_PATH=/,
+        N8N_EDITOR_BASE_URL=${_BASE_URL},
+        WEBHOOK_URL=${_BASE_URL}/,
+        N8N_PUBLIC_API_DISABLED=false,
+        N8N_PUBLIC_API_ENDPOINT=api,
+        N8N_ENDPOINT_REST=rest,
+        N8N_ENDPOINT_WEBHOOK=webhook,
+        N8N_ENDPOINT_WEBHOOK_TEST=webhook-test,
+        N8N_ENDPOINT_WEBHOOK_WAIT=webhook-waiting
 
 # Opciones de build
 options:
@@ -3648,5 +3868,5 @@ substitutions:
   _N8N_ENCRYPTION_KEY: 'your-encryption-key'
   _N8N_USER: 'admin'
   _N8N_PASSWORD: 'your-n8n-password'
-  _WEBHOOK_URL: 'https://n8n-1059853171455.us-central1.run.app'
-````
+  _BASE_URL: 'https://n8n-1059853171455.us-central1.run.app'
+```

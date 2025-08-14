@@ -1,7 +1,7 @@
 # Dockerfile para n8n en Google Cloud Run
 # Mínimo y estable - usa el entrypoint oficial
 
-FROM n8nio/n8n:1.88.0
+FROM n8nio/n8n:1.106.3
 
 # No cambiar USER ni ENTRYPOINT
 # No establecer N8N_PROTOCOL aquí; hacerlo en runtime
