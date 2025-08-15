@@ -1,5 +1,5 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 echo "=== Iniciando n8n para Cloud Run ==="
 
@@ -13,5 +13,5 @@ export PATH="/usr/local/bin:${PATH}"
 echo "Host: $N8N_HOST"
 echo "Puerto: $N8N_PORT"
 
-# MUY IMPORTANTE: delegar al entrypoint oficial con ruta absoluta a n8n
+# Delegar al entrypoint oficial con ruta absoluta a n8n
 exec /docker-entrypoint.sh /usr/local/bin/n8n start
