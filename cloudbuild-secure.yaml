@@ -121,7 +121,7 @@ steps:
         N8N_DISABLE_UI=false,
         N8N_PATH=/,
         N8N_HOST=0.0.0.0,
-        N8N_PROTOCOL=https,
+        N8N_PROTOCOL=http,
         N8N_EDITOR_BASE_URL=${_BASE_URL},
         WEBHOOK_URL=${_BASE_URL}/
 
