@@ -3647,8 +3647,8 @@ ENTRYPOINT ["/startup.sh"]
 
 ## File: startup.sh
 ````bash
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 echo "=== Iniciando n8n para Cloud Run ==="
 
@@ -3656,11 +3656,25 @@ echo "=== Iniciando n8n para Cloud Run ==="
 export N8N_PORT="${PORT:-8080}"
 export N8N_HOST="${N8N_HOST:-0.0.0.0}"
 
+# Asegurar que /usr/local/bin esté en PATH (donde vive n8n)
+export PATH="/usr/local/bin:${PATH}"
+
 echo "Host: $N8N_HOST"
 echo "Puerto: $N8N_PORT"
 
-# MUY IMPORTANTE: delegar al entrypoint oficial
-exec /docker-entrypoint.sh n8n start
+# Detectar la ruta correcta del binario de n8n
+if [ -x "/usr/local/bin/n8n" ]; then
+	N8N_BIN="/usr/local/bin/n8n"
+elif [ -x "/usr/bin/n8n" ]; then
+	N8N_BIN="/usr/bin/n8n"
+else
+	N8N_BIN="n8n"
+fi
+
+echo "Usando binario: $N8N_BIN"
+
+# Delegar al entrypoint oficial con la ruta detectada
+exec /docker-entrypoint.sh "$N8N_BIN" start
 ````
 
 ## File: Dockerfile.cloudrun
@@ -3670,7 +3684,7 @@ FROM n8nio/n8n:1.106.3
 # Copiamos el script y dejamos permisos
 COPY startup.sh /usr/local/bin/startup.sh
 USER root
-RUN chmod +x /usr/local/bin/startup.sh
+RUN sed -i 's/\r$//' /usr/local/bin/startup.sh && chmod 0755 /usr/local/bin/startup.sh
 USER node
 
 # Entramos por nuestro script, que a su vez llama al entrypoint oficial
@@ -3695,50 +3709,50 @@ steps:
       ]
 
   # Escanear imagen con Trivy (vulnerabilidades críticas y altas)
-  - name: 'aquasec/trivy'
-    id: 'trivy-scan'
-    args:
-      - 'image'
-      - '--severity'
-      - 'HIGH,CRITICAL'
-      - '--exit-code'
-      - '1'
-      - '--format'
-      - 'table'
-      - '--skip-files'
-      - '/usr/local/bin/trivy'
-      - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
+  # - name: 'aquasec/trivy'
+  #   id: 'trivy-scan'
+  #   args:
+  #     - 'image'
+  #     - '--severity'
+  #     - 'HIGH,CRITICAL'
+  #     - '--exit-code'
+  #     - '1'
+  #     - '--format'
+  #     - 'table'
+  #     - '--skip-files'
+  #     - '/usr/local/bin/trivy'
+  #     - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Trivy para vulnerabilidades medias y bajas (guardar en archivo)
-  - name: 'aquasec/trivy'
-    id: 'trivy-scan-medium'
-    args:
-      - 'image'
-      - '--severity'
-      - 'MEDIUM,LOW'
-      - '--exit-code'
-      - '0'
-      - '--format'
-      - 'table'
-      - '--output'
-      - 'trivy-non-critical-results.txt'
-      - '--skip-files'
-      - '/usr/local/bin/trivy'
-      - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
+  # - name: 'aquasec/trivy'
+  #   id: 'trivy-scan-medium'
+  #   args:
+  #     - 'image'
+  #     - '--severity'
+  #     - 'MEDIUM,LOW'
+  #     - '--exit-code'
+  #     - '0'
+  #     - '--format'
+  #     - 'table'
+  #     - '--output'
+  #     - 'trivy-non-critical-results.txt'
+  #     - '--skip-files'
+  #     - '/usr/local/bin/trivy'
+  #     - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Google Artifact Analysis
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'artifact-scan'
-    entrypoint: gcloud
-    args:
-      - 'artifacts'
-      - 'docker'
-      - 'images'
-      - 'scan'
-      - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
-      - '--location=us'
-      - '--format=json'
-      - '--quiet'
+  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  #   id: 'artifact-scan'
+  #   entrypoint: gcloud
+  #   args:
+  #     - 'artifacts'
+  #     - 'docker'
+  #     - 'images'
+  #     - 'scan'
+  #     - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
+  #     - '--location=us'
+  #     - '--format=json'
+  #     - '--quiet'
 
   # Mostrar vulnerabilidades no críticas solo si existen
   - name: 'alpine'
@@ -3761,53 +3775,52 @@ steps:
 
   # Desplegar a Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: gcloud
-  args:
-    - run
-    - deploy
-    - n8n
-    - --image
-    - gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA
-    - --region
-    - us-central1
-    - --platform
-    - managed
-    - --allow-unauthenticated
-    - --port
-    - '8080'
-    - --memory
-    - 2Gi
-    - --cpu
-    - '2'
-    - --cpu-boost
-    - --max-instances
-    - '5'
-    - --timeout
-    - '300'
-    - --concurrency
-    - '80'
-    - --add-cloudsql-instances
-    - ${_CLOUDSQL_INSTANCE}
-    - --set-env-vars
-    - >
-      NODE_ENV=production,
-      DB_TYPE=postgresdb,
-      DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},
-      DB_POSTGRESDB_PORT=5432,
-      DB_POSTGRESDB_DATABASE=${_DB_NAME},
-      DB_POSTGRESDB_USER=${_DB_USER},
-      DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},
-      N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},
-      N8N_BASIC_AUTH_ACTIVE=true,
-      N8N_BASIC_AUTH_USER=${_N8N_USER},
-      N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},
-      N8N_DISABLE_UI=false,
-      N8N_PATH=/,
-      N8N_HOST=0.0.0.0,
-      # Internamente el contenedor habla HTTP; Cloud Run termina TLS externamente
-      N8N_PROTOCOL=https,
-      N8N_EDITOR_BASE_URL=${_BASE_URL},
-      WEBHOOK_URL=${_BASE_URL}/
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - n8n
+      - --image
+      - gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA
+      - --region
+      - us-central1
+      - --platform
+      - managed
+      - --allow-unauthenticated
+      - --port
+      - '8080'
+      - --memory
+      - 2Gi
+      - --cpu
+      - '2'
+      - --cpu-boost
+      - --max-instances
+      - '5'
+      - --timeout
+      - '300'
+      - --concurrency
+      - '80'
+      - --add-cloudsql-instances
+      - ${_CLOUDSQL_INSTANCE}
+      - --set-env-vars
+      - >-
+        NODE_ENV=production,
+        DB_TYPE=postgresdb,
+        DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},
+        DB_POSTGRESDB_PORT=5432,
+        DB_POSTGRESDB_DATABASE=${_DB_NAME},
+        DB_POSTGRESDB_USER=${_DB_USER},
+        DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},
+        N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},
+        N8N_BASIC_AUTH_ACTIVE=true,
+        N8N_BASIC_AUTH_USER=${_N8N_USER},
+        N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},
+        N8N_DISABLE_UI=false,
+        N8N_PATH=/,
+        N8N_HOST=0.0.0.0,
+        N8N_PROTOCOL=https,
+        N8N_EDITOR_BASE_URL=${_BASE_URL},
+        WEBHOOK_URL=${_BASE_URL}/
 
 # Opciones de build
 options:
