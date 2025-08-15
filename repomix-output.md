@@ -3666,16 +3666,17 @@ EXPOSE 8080
 #!/bin/sh
 set -e
 
-echo "=== Iniciando n8n para Cloud Run (v3) ==="
+echo "=== Iniciando n8n para Cloud Run (v5) ==="
 
 echo "Cloud Run PORT: ${PORT:-'No definido (usando default de n8n)'}"
 
-# Asegurar que n8n escuche en el puerto dinámico de Cloud Run
-export N8N_PORT="${PORT:-8080}"
+# Asegurar PATH correcto y mapear $PORT a N8N_PORT
+export PATH="/usr/local/bin:${PATH}"
+[ -n "${PORT:-}" ] && export N8N_PORT="$PORT"
 export N8N_HOST="${N8N_HOST:-0.0.0.0}"
 
-# Delegar al entrypoint oficial con la sintaxis correcta
-exec /docker-entrypoint.sh n8n start
+# Delegar al entrypoint oficial (deja que él ejecute n8n con su comando por defecto)
+exec /docker-entrypoint.sh
 ````
 
 ## File: cloudbuild-secure.yaml
@@ -3803,10 +3804,9 @@ steps:
         N8N_DISABLE_UI=false,
         N8N_PATH=/,
         N8N_HOST=0.0.0.0,
-        N8N_PROTOCOL=https,
+        N8N_PROTOCOL=http,
         N8N_EDITOR_BASE_URL=${_BASE_URL},
         WEBHOOK_URL=${_BASE_URL}/
-
 # Opciones de build
 options:
   logging: CLOUD_LOGGING_ONLY
