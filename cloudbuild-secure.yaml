@@ -78,53 +78,52 @@ steps:
 
   # Desplegar a Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: gcloud
-  args:
-    - run
-    - deploy
-    - n8n
-    - --image
-    - gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA
-    - --region
-    - us-central1
-    - --platform
-    - managed
-    - --allow-unauthenticated
-    - --port
-    - '8080'
-    - --memory
-    - 2Gi
-    - --cpu
-    - '2'
-    - --cpu-boost
-    - --max-instances
-    - '5'
-    - --timeout
-    - '300'
-    - --concurrency
-    - '80'
-    - --add-cloudsql-instances
-    - ${_CLOUDSQL_INSTANCE}
-    - --set-env-vars
-    - >
-      NODE_ENV=production,
-      DB_TYPE=postgresdb,
-      DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},
-      DB_POSTGRESDB_PORT=5432,
-      DB_POSTGRESDB_DATABASE=${_DB_NAME},
-      DB_POSTGRESDB_USER=${_DB_USER},
-      DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},
-      N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},
-      N8N_BASIC_AUTH_ACTIVE=true,
-      N8N_BASIC_AUTH_USER=${_N8N_USER},
-      N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},
-      N8N_DISABLE_UI=false,
-      N8N_PATH=/,
-      N8N_HOST=0.0.0.0,
-      # Internamente el contenedor habla HTTP; Cloud Run termina TLS externamente
-      N8N_PROTOCOL=https,
-      N8N_EDITOR_BASE_URL=${_BASE_URL},
-      WEBHOOK_URL=${_BASE_URL}/
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - n8n
+      - --image
+      - gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA
+      - --region
+      - us-central1
+      - --platform
+      - managed
+      - --allow-unauthenticated
+      - --port
+      - '8080'
+      - --memory
+      - 2Gi
+      - --cpu
+      - '2'
+      - --cpu-boost
+      - --max-instances
+      - '5'
+      - --timeout
+      - '300'
+      - --concurrency
+      - '80'
+      - --add-cloudsql-instances
+      - ${_CLOUDSQL_INSTANCE}
+      - --set-env-vars
+      - >-
+        NODE_ENV=production,
+        DB_TYPE=postgresdb,
+        DB_POSTGRESDB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE},
+        DB_POSTGRESDB_PORT=5432,
+        DB_POSTGRESDB_DATABASE=${_DB_NAME},
+        DB_POSTGRESDB_USER=${_DB_USER},
+        DB_POSTGRESDB_PASSWORD=${_DB_PASSWORD},
+        N8N_ENCRYPTION_KEY=${_N8N_ENCRYPTION_KEY},
+        N8N_BASIC_AUTH_ACTIVE=true,
+        N8N_BASIC_AUTH_USER=${_N8N_USER},
+        N8N_BASIC_AUTH_PASSWORD=${_N8N_PASSWORD},
+        N8N_DISABLE_UI=false,
+        N8N_PATH=/,
+        N8N_HOST=0.0.0.0,
+        N8N_PROTOCOL=https,
+        N8N_EDITOR_BASE_URL=${_BASE_URL},
+        WEBHOOK_URL=${_BASE_URL}/
 
 # Opciones de build
 options:
