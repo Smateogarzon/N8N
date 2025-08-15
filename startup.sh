@@ -1,13 +1,14 @@
 #!/bin/sh
 set -e
 
-echo "=== Iniciando n8n para Cloud Run (v4 - Final) ==="
+echo "=== Iniciando n8n para Cloud Run (v5) ==="
 
-# Cloud Run inyecta la variable $PORT.
 echo "Cloud Run PORT: ${PORT:-'No definido (usando default de n8n)'}"
 
-# PASO CRÍTICO: Reconstruir el PATH para incluir los binarios de n8n.
+# Asegurar PATH correcto y mapear $PORT a N8N_PORT
 export PATH="/usr/local/bin:${PATH}"
+[ -n "${PORT:-}" ] && export N8N_PORT="$PORT"
+export N8N_HOST="${N8N_HOST:-0.0.0.0}"
 
-# Delegamos al entrypoint oficial con la sintaxis correcta
-exec /docker-entrypoint.sh n8n start
+# Delegar al entrypoint oficial (deja que él ejecute n8n con su comando por defecto)
+exec /docker-entrypoint.sh
