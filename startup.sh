@@ -1,16 +1,15 @@
 #!/bin/sh
 set -e
 
-echo "=== Iniciando n8n para Cloud Run (v6) ==="
-echo "Cloud Run PORT: ${PORT:-8080}"
+echo "=== Iniciando n8n para Cloud Run (v7 - Simple) ==="
 
-# Configurar variables críticas
+# Solo configurar PATH, dejar que Cloud Run maneje los puertos
 export PATH="/usr/local/bin:${PATH}"
-export N8N_PORT="${PORT:-8080}"
-export N8N_HOST="0.0.0.0"
-export N8N_LISTEN_ADDRESS="0.0.0.0"
 
-echo "N8N escuchará en: $N8N_HOST:$N8N_PORT"
+echo "Variables de entorno:"
+echo "PORT: ${PORT:-'no definido'}"
+echo "N8N_PORT: ${N8N_PORT:-'no definido'}"
+echo "N8N_HOST: ${N8N_HOST:-'no definido'}"
 
-# Delegar al entrypoint oficial
+# Delegar al entrypoint oficial (él manejará todos los puertos)
 exec /docker-entrypoint.sh

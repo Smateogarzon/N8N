@@ -126,7 +126,9 @@ steps:
         N8N_EDITOR_BASE_URL=${_BASE_URL},
         WEBHOOK_URL=${_BASE_URL}/,
         N8N_LISTEN_ADDRESS=0.0.0.0,
-        EXECUTIONS_PROCESS=main
+        EXECUTIONS_PROCESS=main,
+        EXECUTIONS_MODE=regular,
+        N8N_LOG_LEVEL=debug
 # Opciones de build
 options:
   logging: CLOUD_LOGGING_ONLY
