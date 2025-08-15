@@ -1,12 +1,10 @@
 FROM n8nio/n8n:1.106.3
 
-# Copiamos el script y dejamos permisos
+# Copia el script y asegura permisos + fin de línea UNIX
 COPY startup.sh /usr/local/bin/startup.sh
-USER root
-RUN chmod +x /usr/local/bin/startup.sh
-USER node
+RUN sed -i 's/\r$//' /usr/local/bin/startup.sh && chmod 0755 /usr/local/bin/startup.sh
 
-# Entramos por nuestro script, que a su vez llama al entrypoint oficial
-ENTRYPOINT ["/usr/local/bin/startup.sh"]
+# Importante: invocar explícitamente con /bin/sh
+ENTRYPOINT ["/bin/sh", "/usr/local/bin/startup.sh"]
 
 EXPOSE 8080
