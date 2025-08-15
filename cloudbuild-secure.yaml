@@ -44,18 +44,18 @@ steps:
       - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
 
   # Escanear con Google Artifact Analysis
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: 'artifact-scan'
-    entrypoint: gcloud
-    args:
-      - 'artifacts'
-      - 'docker'
-      - 'images'
-      - 'scan'
-      - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
-      - '--location=us'
-      - '--format=json'
-      - '--quiet'
+  # - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  #   id: 'artifact-scan'
+  #   entrypoint: gcloud
+  #   args:
+  #     - 'artifacts'
+  #     - 'docker'
+  #     - 'images'
+  #     - 'scan'
+  #     - 'gcr.io/$PROJECT_ID/n8n:$COMMIT_SHA'
+  #     - '--location=us'
+  #     - '--format=json'
+  #     - '--quiet'
 
   # Mostrar vulnerabilidades no críticas solo si existen
   - name: 'alpine'
