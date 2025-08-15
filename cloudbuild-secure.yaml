@@ -124,7 +124,6 @@ steps:
         N8N_PROTOCOL=http,
         N8N_EDITOR_BASE_URL=${_BASE_URL},
         WEBHOOK_URL=${_BASE_URL}/
-
 # Opciones de build
 options:
   logging: CLOUD_LOGGING_ONLY
